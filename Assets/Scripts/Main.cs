@@ -39,10 +39,10 @@ public class Main : NetworkBehaviour
         utp.ConnectionData.Address = ip.ToString();
         utp.ConnectionData.Port = port;
 
-        NetworkManager.Singleton.OnClientConnectedCallback += HostOnClientConnected;
-        NetworkManager.Singleton.OnClientConnectedCallback += HostOnClientDisconnected;
-
         NetworkManager.Singleton.StartHost();
+
+        NetworkManager.Singleton.OnClientConnectedCallback += HostOnClientConnected;
+        NetworkManager.Singleton.OnClientDisconnectCallback += HostOnClientDisconnected;
 
         Debug.Log("start host");
     }
@@ -74,7 +74,7 @@ public class Main : NetworkBehaviour
 
     private void HostOnClientDisconnected(ulong clientId)
     {
-        Debug.Log($"Client Connected: {clientId}");
+        Debug.Log($"Client Disconnected: {clientId}");
     }
 
     private void NetSettingsOnClientStart(IPAddress ip, ushort port)
