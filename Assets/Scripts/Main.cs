@@ -16,6 +16,8 @@ public class Main : NetworkBehaviour
         netSettings.startServer += NetSettingsOnServerStart;
         netSettings.startHost += NetSettingsOnHostStart;
         netSettings.startClient += NetSettingsOnClientStart;
+
+        netSettings.setStatusText("Not Connected");
         Debug.Log("hello world");
    
     }
@@ -37,6 +39,9 @@ public class Main : NetworkBehaviour
         utp.ConnectionData.Address = ip.ToString();
         utp.ConnectionData.Port = port;
 
+        NetworkManager.Singleton.OnClientConnectedCallback += HostOnClientConnected;
+        NetworkManager.Singleton.OnClientConnectedCallback += HostOnClientDisconnected;
+
         NetworkManager.Singleton.StartHost();
 
         Debug.Log("start host");
@@ -53,8 +58,25 @@ public class Main : NetworkBehaviour
         Debug.Log("start server");
     }
 
+    private void printIs(string msg)
+    {
+        Debug.Log($"[{msg}] server: {IsServer} host: {IsHost} client: {IsClient} owner: {IsClient}");
+    }
+
     // -----------------------
-    // Events 
+    // Events
+    //------------------------
+
+    private void HostOnClientConnected(ulong clientId)
+    {
+        Debug.Log($"Client Connected: {clientId}");
+    }
+
+    private void HostOnClientDisconnected(ulong clientId)
+    {
+        Debug.Log($"Client Connected: {clientId}");
+    }
+
     private void NetSettingsOnClientStart(IPAddress ip, ushort port)
     {
         startClient(ip, port);
