@@ -5,14 +5,20 @@ using System.Net;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 
-public class Main : NetworkBehaviour
+public class MainScript : NetworkBehaviour
 {
 
     public It4080.NetworkSettings netSettings;
+    public ChatServer chatServer;
+    public It4080.Chat chat;
 
     // Start is called before the first frame update
     void Start()
     {
+        chat.SystemMessage("Hello World");
+        It4080.Chat.ChatMessage msg = new It4080.Chat.ChatMessage();
+        msg.message = "foobar";
+
         netSettings.startServer += NetSettingsOnServerStart;
         netSettings.startHost += NetSettingsOnHostStart;
         netSettings.startClient += NetSettingsOnClientStart;
@@ -29,7 +35,8 @@ public class Main : NetworkBehaviour
         utp.ConnectionData.Port = port;
 
         NetworkManager.Singleton.StartClient();
-
+        NetworkManager.Singleton.OnClientConnectedCallback += ClientOnClientConnected;
+        NetworkManager.Singleton.OnClientDisconnectCallback += ClientOnClientDisconnected;
         Debug.Log("start client");
     }
 
@@ -40,9 +47,11 @@ public class Main : NetworkBehaviour
         utp.ConnectionData.Port = port;
 
         NetworkManager.Singleton.StartHost();
+   
 
         NetworkManager.Singleton.OnClientConnectedCallback += HostOnClientConnected;
         NetworkManager.Singleton.OnClientDisconnectCallback += HostOnClientDisconnected;
+        netSettings.setStatusText("You are the HOST, your ID is 0");
 
         Debug.Log("start host");
     }
@@ -54,6 +63,7 @@ public class Main : NetworkBehaviour
         utp.ConnectionData.Port = port;
 
         NetworkManager.Singleton.StartServer();
+        netSettings.setStatusText("You have started the SERVER");
 
         Debug.Log("start server");
     }
@@ -75,6 +85,16 @@ public class Main : NetworkBehaviour
     private void HostOnClientDisconnected(ulong clientId)
     {
         Debug.Log($"Client Disconnected: {clientId}");
+    }
+
+    private void ClientOnClientConnected(ulong clientId)
+    {
+        netSettings.setStatusText($"Connected as Client Number: {clientId}");
+    }
+
+    private void ClientOnClientDisconnected(ulong clientId)
+    {
+        netSettings.setStatusText($"You have DISCONNECTED");
     }
 
     private void NetSettingsOnClientStart(IPAddress ip, ushort port)
