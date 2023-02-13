@@ -9,15 +9,11 @@ public class MainScript : NetworkBehaviour
 {
 
     public It4080.NetworkSettings netSettings;
-    public ChatServer chatServer;
     public It4080.Chat chat;
 
     // Start is called before the first frame update
     void Start()
     {
-        chat.SystemMessage("Hello World");
-        It4080.Chat.ChatMessage msg = new It4080.Chat.ChatMessage();
-        msg.message = "foobar";
 
         netSettings.startServer += NetSettingsOnServerStart;
         netSettings.startHost += NetSettingsOnHostStart;
@@ -25,7 +21,7 @@ public class MainScript : NetworkBehaviour
 
         netSettings.setStatusText("Not Connected");
         Debug.Log("hello world");
-   
+
     }
 
     private void startClient(IPAddress ip, ushort port)
@@ -111,8 +107,6 @@ public class MainScript : NetworkBehaviour
     {
         startHost(ip, port);
     }
-
-
 
 
     // Update is called once per frame
