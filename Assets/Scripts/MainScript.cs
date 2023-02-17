@@ -4,12 +4,15 @@ using UnityEngine;
 using System.Net;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
+using UnityEngine.UI;
 
 public class MainScript : NetworkBehaviour
 {
 
     public It4080.NetworkSettings netSettings;
     public It4080.Chat chat;
+
+    private Button btnStartGame;
 
     // Start is called before the first frame update
     void Start()
@@ -22,6 +25,20 @@ public class MainScript : NetworkBehaviour
         netSettings.setStatusText("Not Connected");
         Debug.Log("hello world");
 
+        btnStartGame = GameObject.Find("BtnStartGame").GetComponent<Button>();
+        btnStartGame.onClick.AddListener(BtnStartGameOnClick);
+        //btn.gameObject.SetActive(false);
+
+    }
+
+    private void BtnStartGameOnClick()
+    {
+        StartGame();
+    }
+
+    private void StartGame()
+    {
+        NetworkManager.SceneManager.LoadScene("Arena1", UnityEngine.SceneManagement.LoadSceneMode.Single);
     }
 
     private void startClient(IPAddress ip, ushort port)
@@ -33,6 +50,7 @@ public class MainScript : NetworkBehaviour
         NetworkManager.Singleton.StartClient();
         NetworkManager.Singleton.OnClientConnectedCallback += ClientOnClientConnected;
         NetworkManager.Singleton.OnClientDisconnectCallback += ClientOnClientDisconnected;
+        netSettings.hide();
         Debug.Log("start client");
     }
 
@@ -48,6 +66,7 @@ public class MainScript : NetworkBehaviour
         NetworkManager.Singleton.OnClientConnectedCallback += HostOnClientConnected;
         NetworkManager.Singleton.OnClientDisconnectCallback += HostOnClientDisconnected;
         netSettings.setStatusText("You are the HOST, your ID is 0");
+        netSettings.hide();
 
         Debug.Log("start host");
     }
@@ -60,6 +79,7 @@ public class MainScript : NetworkBehaviour
 
         NetworkManager.Singleton.StartServer();
         netSettings.setStatusText("You have started the SERVER");
+        netSettings.hide();
 
         Debug.Log("start server");
     }
@@ -91,6 +111,7 @@ public class MainScript : NetworkBehaviour
     private void ClientOnClientDisconnected(ulong clientId)
     {
         netSettings.setStatusText($"You have DISCONNECTED");
+        netSettings.show();
     }
 
     private void NetSettingsOnClientStart(IPAddress ip, ushort port)
