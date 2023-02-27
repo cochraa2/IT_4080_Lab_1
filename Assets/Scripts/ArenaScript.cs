@@ -21,7 +21,7 @@ public class ArenaScript : NetworkBehaviour
     {
         foreach (ulong clientId in NetworkManager.Singleton.ConnectedClientsIds)
         {
-            //SpawnPlayerForClient(clientId);
+            SpawnPlayerForClient(clientId);
         }
     }
 
@@ -29,7 +29,7 @@ public class ArenaScript : NetworkBehaviour
     {
         // Pick a location to spawn the prefab at.  This is a simple
         // solution to illustrate setting the position.
-        Vector3 spawnPosition = new Vector3(0, 1, clientId * 5);
+        Vector3 spawnPosition = new Vector3(0, 5, clientId * 5);
         CarScript playerSpawn = Instantiate(
                                 carPrefab,
                                 spawnPosition,

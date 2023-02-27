@@ -5,49 +5,29 @@ using Unity.Netcode;
 
 public class CarScript : NetworkBehaviour
 {
-    //private static Color[] availColors = new Color[] {
-    //        Color.black, Color.blue, Color.cyan,
-    //        Color.gray, Color.green, Color.yellow };
-    //private int hostColorIndex = 0;
-    //public NetworkVariable netPlayerColor = new NetworkVariable();
+    public float speed = 20f;
+    private float turnSpeed = 100f;
+    public float horizontalInput;
+    public float forwardInput;
+    private Camera _camera;
+
+    public override void OnNetworkSpawn()
+    {
+        base.OnNetworkSpawn();
+        _camera = transform.Find("Camera").GetComponent<Camera>();
+        _camera.enabled = IsOwner;
+    }
 
 
-    //public override void OnNetworkSpawn()
-    //{
-    //    netPlayerColor.OnValueChanged += OnPlayerColorChanged;
-    //}
+    void Update()
+    {
+        //Move the car around
+        horizontalInput = Input.GetAxis("Horizontal");
+        forwardInput = Input.GetAxis("Vertical");
+
+        transform.Translate(Vector3.left * Time.deltaTime * speed * forwardInput);
+        transform.Rotate(Vector3.up, turnSpeed * Time.deltaTime * horizontalInput);
 
 
-    //public void ApplyPlayerColor()
-    //{
-    //    GetComponent().material.color = netPlayerColor.Value;
-    //}
-
-
-    //public void OnPlayerColorChanged(Color previous, Color current)
-    //{
-    //    ApplyPlayerColor();
-    //}
-
-
-    //public void Update()
-    //{
-    //    if (Input.GetButtonDown("Fire1"))
-    //    {
-    //        RequestNextColorServerRpc();
-    //    }
-    //}
-
-    //[ServerRpc]
-    //void RequestNextColorServerRpc(ServerRpcParams serverRpcParams = default)
-    //{
-    //    hostColorIndex += 1;
-    //    if (hostColorIndex > availColors.Length - 1)
-    //    {
-    //        hostColorIndex = 0;
-    //    }
-
-    //    Debug.Log($"host color index = {hostColorIndex} for {serverRpcParams.Receive.SenderClientId}");
-    //    netPlayerColor.Value = availColors[hostColorIndex];
-    //}
+    }
 }
