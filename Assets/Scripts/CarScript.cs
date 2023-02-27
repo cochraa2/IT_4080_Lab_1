@@ -7,10 +7,11 @@ public class CarScript : NetworkBehaviour
 {
     public NetworkVariable<Vector3> PositionChange = new NetworkVariable<Vector3>();
     public NetworkVariable<Vector3> RotationChange = new NetworkVariable<Vector3>();
+    public NetworkVariable<Color> VehicleColor = new NetworkVariable<Color>();
 
 
-    private float speed = .02f;
-    private float turnSpeed = .2f;
+    private float speed = .03f;
+    private float turnSpeed = .5f;
     private float horizontalInput;
     private float forwardInput;
 
@@ -21,6 +22,8 @@ public class CarScript : NetworkBehaviour
         base.OnNetworkSpawn();
         _camera = transform.Find("Camera").GetComponent<Camera>();
         _camera.enabled = IsOwner;
+
+        netPlayerColor.OnValueChanged += OnPlayerColorChanged;
     }
 
     void Update()
@@ -43,6 +46,8 @@ public class CarScript : NetworkBehaviour
             transform.Rotate(RotationChange.Value);
         }
 
+        ClickToChangeColor();
+
 
     }
 
@@ -54,7 +59,45 @@ public class CarScript : NetworkBehaviour
     }
 
     //------------------
-    //RPC
+    // Color Things
+    //------------------
+
+    private static Color[] availColors = new Color[] {
+            Color.black, Color.blue, Color.cyan,
+            Color.gray, Color.green, Color.yellow };
+    private int hostColorIndex = 0;
+    public NetworkVariable<Color> netPlayerColor = new NetworkVariable<Color>();
+
+
+
+    public void ApplyPlayerColor()
+    { 
+        GetComponent<MeshRenderer>().material.color = netPlayerColor.Value;
+        transform.Find("CarBody").GetComponent<MeshRenderer>().material.color = netPlayerColor.Value;
+        transform.Find("RoofBack").GetComponent<MeshRenderer>().material.color = netPlayerColor.Value;
+        transform.Find("RoofTop").GetComponent<MeshRenderer>().material.color = netPlayerColor.Value;
+
+    }
+
+
+    public void OnPlayerColorChanged(Color previous, Color current)
+    {
+        ApplyPlayerColor();
+    }
+
+
+    public void ClickToChangeColor()
+    {
+        if (Input.GetButtonDown("Fire1"))
+        {
+            RequestNextColorServerRpc();
+        }
+    }
+
+    
+
+    //------------------
+    // RPC
     //------------------
 
     [ServerRpc]
@@ -66,6 +109,22 @@ public class CarScript : NetworkBehaviour
 
         PositionChange.Value = posChange;
         RotationChange.Value = rotChange;
+    }
+
+    [ServerRpc]
+    void RequestNextColorServerRpc(ServerRpcParams serverRpcParams = default)
+    {
+        if (!IsServer && !IsHost)
+            return;
+
+        hostColorIndex += 1;
+        if (hostColorIndex > availColors.Length - 1)
+        {
+            hostColorIndex = 0;
+        }
+
+        Debug.Log($"host color index = {hostColorIndex} for {serverRpcParams.Receive.SenderClientId}");
+        netPlayerColor.Value = availColors[hostColorIndex];
     }
 
 }
