@@ -27,7 +27,7 @@ public class MainScript : NetworkBehaviour
 
         btnStartGame = GameObject.Find("BtnStartGame").GetComponent<Button>();
         btnStartGame.onClick.AddListener(BtnStartGameOnClick);
-        //btn.gameObject.SetActive(false);
+        btnStartGame.gameObject.SetActive(false);
 
     }
 
@@ -67,6 +67,7 @@ public class MainScript : NetworkBehaviour
         NetworkManager.Singleton.OnClientDisconnectCallback += HostOnClientDisconnected;
         netSettings.setStatusText("You are the HOST, your ID is 0");
         netSettings.hide();
+        btnStartGame.gameObject.SetActive(true);
 
         Debug.Log("start host");
     }

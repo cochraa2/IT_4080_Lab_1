@@ -6,13 +6,57 @@ using Unity.Netcode;
 public class PowerUpScript : NetworkBehaviour
 {
     public bool spawnOnLoad = true;
-    public float refreshTime = 2f;
+
+    private GameObject curPowerUp = null;
+    private Transform spawnPointTransform;
+
+    public float spawnDelay = 2f;
 
     public GameObject bonusPrefab;
 
     private void SpawnBonus()
     {
-        Vector3 spawnPosition = new Vector3(0, 0, 0);
+        spawnPointTransform = transform.Find("SpawnPoint");
     }
+
+    public void Update()
+    {
+        if(IsServer && curPowerUp == null)
+        {
+            SpawnPowerUp();
+        }
+    }
+
+
+
+    public override void OnNetworkSpawn()
+    {
+        base.OnNetworkSpawn();
+
+        if (IsServer)
+        {
+            HostOnNetworkSpawn();
+        }
+    }
+
+    private void HostOnNetworkSpawn()
+    {
+        if(bonusPrefab != null && spawnOnLoad)
+        {
+            SpawnPowerUp();
+        }
+    }
+
+
+    private void SpawnPowerUp()
+    {
+        Vector3 spawnPosition = transform.position;
+        spawnPosition.y = 1;
+        GameObject pu = Instantiate(bonusPrefab, spawnPosition, Quaternion.identity);
+        pu.GetComponent<NetworkObject>().Spawn();
+        curPowerUp = pu;
+
+    }
+
 
 }
