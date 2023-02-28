@@ -9,9 +9,9 @@ public class CarScript : NetworkBehaviour
     public NetworkVariable<Vector3> RotationChange = new NetworkVariable<Vector3>();
     public NetworkVariable<Color> VehicleColor = new NetworkVariable<Color>();
 
-
-    private float speed = .03f;
-    private float turnSpeed = .5f;
+    
+    private float speed = 50f;
+    private float turnSpeed = 175f;
     private float horizontalInput;
     private float forwardInput;
 
@@ -33,10 +33,12 @@ public class CarScript : NetworkBehaviour
         if (IsOwner)
         {
             movementInputs();
-            Vector3 goForward = new Vector3(forwardInput, 0, 0);
+            Vector3 goForward = new Vector3(forwardInput * Time.deltaTime, 0, 0);
             goForward *= speed;
-            Vector3 turnCar = new Vector3(0, horizontalInput, 0);
+
+            Vector3 turnCar = new Vector3(0, horizontalInput * Time.deltaTime, 0);
             turnCar *= turnSpeed;
+
             requestPositionToMoveServerRpc(goForward, turnCar);
         }
 
