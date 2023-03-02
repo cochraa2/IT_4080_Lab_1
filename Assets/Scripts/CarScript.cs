@@ -9,7 +9,7 @@ public class CarScript : NetworkBehaviour
     public NetworkVariable<Vector3> RotationChange = new NetworkVariable<Vector3>();
     public NetworkVariable<Color> VehicleColor = new NetworkVariable<Color>();
 
-    
+
     private float speed = 50f;
     private float turnSpeed = 175f;
     private float horizontalInput;
@@ -26,10 +26,51 @@ public class CarScript : NetworkBehaviour
         netPlayerColor.OnValueChanged += OnPlayerColorChanged;
     }
 
+    //private void OnCollisionEnter(Collision collision)
+    //{
+    //    if (IsHost)
+    //    {
+    //        if (collision.gameObject.CompareTag("Bullet"))
+    //        {
+    //            HostHandleBulletCollision(collision.gameObject);
+    //        }
+    //    }
+    //}
+
+    //private void HostHandleBulletCollision(GameObject player)
+    //{
+    //    BulletScript bulletBoy = bulletBoy.getComponent
+    //}
+
     void Update()
     {
         //Move the cars around
 
+        //if (IsOwner)
+        //{
+        //    movementInputs();
+        //    Vector3 goForward = new Vector3(forwardInput * Time.deltaTime, 0, 0);
+        //    goForward *= speed;
+
+        //    Vector3 turnCar = new Vector3(0, horizontalInput * Time.deltaTime, 0);
+        //    turnCar *= turnSpeed;
+
+        //    requestPositionToMoveServerRpc(goForward, turnCar);
+        //}
+
+        //if (!IsOwner || IsHost)
+        //{
+        //    transform.Translate(PositionChange.Value);
+        //    transform.Rotate(RotationChange.Value);
+        //}
+
+        //ClickToChangeColor();
+
+
+    }
+
+    private void FixedUpdate()
+    {
         if (IsOwner)
         {
             movementInputs();
@@ -49,8 +90,7 @@ public class CarScript : NetworkBehaviour
         }
 
         ClickToChangeColor();
-
-
+        FlipYourCar();
     }
 
 
@@ -58,6 +98,14 @@ public class CarScript : NetworkBehaviour
     {
         horizontalInput = Input.GetAxis("Horizontal");
         forwardInput = Input.GetAxis("Vertical");
+    }
+
+    private void FlipYourCar()
+    {
+        if (Input.GetKeyDown("i"))
+        {
+            transform.Rotate(0, 0, 0);
+        }
     }
 
     //------------------
