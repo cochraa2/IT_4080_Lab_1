@@ -5,5 +5,11 @@ using Unity.Netcode;
 
 public class BonusScript : NetworkBehaviour
 {
-    
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (IsServer)
+        {
+            Destroy(gameObject);
+        }
+    }
 }
