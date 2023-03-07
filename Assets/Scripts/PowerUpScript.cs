@@ -9,30 +9,53 @@ public class PowerUpScript : NetworkBehaviour
 
     private GameObject curPowerUp = null;
     private Transform spawnPointTransform;
+    private GameObject pu;
+
+    private BonusScript _bonusBoost;
 
     public float spawnDelay = 2f;
 
     public GameObject bonusPrefab;
 
-    private void SpawnBonus()
+    public void SpawnBonus()
     {
-        //spawnPointTransform = transform.Find("SpawnPoint");
-
-
         Vector3 spawnPosition = transform.position;
-        //spawnPosition.Equals(transform.Find("SpawnPoint"));
-        spawnPosition.y = 3;
-        GameObject pu = Instantiate(bonusPrefab, spawnPosition, Quaternion.identity);
+        spawnPosition.y = 4;
+        pu = Instantiate(bonusPrefab, spawnPosition, Quaternion.identity);
         pu.GetComponent<NetworkObject>().Spawn();
         curPowerUp = pu;
+
+        
     }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (IsServer)
+        {
+            if (collision.collider.gameObject.tag == "DaCar")
+            {
+                pu.GetComponent<NetworkObject>().Despawn();
+                StartCoroutine(RespawnPowerUps());
+                
+            }
+        }
+       
+    }
+
+    IEnumerator RespawnPowerUps()
+    {
+        yield return new WaitForSeconds(spawnDelay);
+        SpawnBonus();
+    }
+
+
 
     public void Update()
     {
-        if(IsServer && curPowerUp == null)
-        {
-            SpawnBonus();
-        }
+        //if(IsServer && curPowerUp == null)
+        //{
+        //    SpawnBonus();
+        //}
     }
 
 
@@ -55,17 +78,10 @@ public class PowerUpScript : NetworkBehaviour
         }
     }
 
+    [ServerRpc]
+    void ThePowerUpMethodServerRpc(ServerRpcParams rpcParams = default)
+    {
 
-    //private void SpawnPowerUp()
-    //{
-    //    Vector3 spawnPosition = transform.position;
-    //    spawnPosition.y = 0;
-    //    spawnPosition.x = 0;
-    //    GameObject pu = Instantiate(bonusPrefab, spawnPosition, transform.rotation);
-    //    pu.GetComponent<NetworkObject>().Spawn();
-    //    curPowerUp = pu;
-
-    //}
-
+    }
 
 }

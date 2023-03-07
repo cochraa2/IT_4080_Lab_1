@@ -16,12 +16,19 @@ public class CarScript : NetworkBehaviour
     private float forwardInput;
 
     private Camera _camera;
+    private BulletSpawner _bulletSpawner;
+    private PowerUpScript _bonusBoost;
 
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
         _camera = transform.Find("Camera").GetComponent<Camera>();
         _camera.enabled = IsOwner;
+
+        _bulletSpawner = transform
+            .Find("BarrelTip")
+            .transform.Find("BulletSpawner")
+            .GetComponent<BulletSpawner>();
 
         netPlayerColor.OnValueChanged += OnPlayerColorChanged;
     }
@@ -42,31 +49,19 @@ public class CarScript : NetworkBehaviour
     //    BulletScript bulletBoy = bulletBoy.getComponent
     //}
 
+    
     void Update()
     {
-        //Move the cars around
+        if (IsOwner)
+        {
 
-        //if (IsOwner)
-        //{
-        //    movementInputs();
-        //    Vector3 goForward = new Vector3(forwardInput * Time.deltaTime, 0, 0);
-        //    goForward *= speed;
-
-        //    Vector3 turnCar = new Vector3(0, horizontalInput * Time.deltaTime, 0);
-        //    turnCar *= turnSpeed;
-
-        //    requestPositionToMoveServerRpc(goForward, turnCar);
-        //}
-
-        //if (!IsOwner || IsHost)
-        //{
-        //    transform.Translate(PositionChange.Value);
-        //    transform.Rotate(RotationChange.Value);
-        //}
-
-        //ClickToChangeColor();
+            ClickToChangeColor();
+            FlipYourCar();
+            ShootBullets();
 
 
+        }
+             
     }
 
     private void FixedUpdate()
@@ -88,9 +83,6 @@ public class CarScript : NetworkBehaviour
             transform.Translate(PositionChange.Value);
             transform.Rotate(RotationChange.Value);
         }
-
-        ClickToChangeColor();
-        FlipYourCar();
     }
 
 
@@ -102,9 +94,32 @@ public class CarScript : NetworkBehaviour
 
     private void FlipYourCar()
     {
-        if (Input.GetKeyDown("i"))
+        if (Input.GetKeyDown(KeyCode.F))
         {
             transform.Rotate(0, 0, 0);
+        }
+    }
+
+    private void ShootBullets()
+    {
+        if (IsOwner)
+        {
+            if (Input.GetButtonDown("Fire1"))
+            {
+                _bulletSpawner.FireServerRpc();
+            }
+        }
+        
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (IsServer)
+        {
+            if (other.gameObject.tag == "BonusBoost")
+            {
+                other.GetComponent<NetworkObject>().Despawn();
+            }
         }
     }
 
@@ -138,13 +153,13 @@ public class CarScript : NetworkBehaviour
 
     public void ClickToChangeColor()
     {
-        if (Input.GetButtonDown("Fire1"))
+        if (Input.GetKeyDown(KeyCode.C))
         {
             RequestNextColorServerRpc();
         }
     }
 
-    
+
 
     //------------------
     // RPC
