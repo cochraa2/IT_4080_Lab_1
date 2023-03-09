@@ -7,55 +7,43 @@ public class PowerUpScript : NetworkBehaviour
 {
     public bool spawnOnLoad = true;
 
-    private GameObject curPowerUp = null;
+    public GameObject bonusPrefab;
+    private GameObject serverPowerUp = null;
     private Transform spawnPointTransform;
-    private GameObject pu;
+    private GameObject instantiatedPowerUp;
+
+    private float spawnDelay = 2f;
+    private float timeAfterDestroyed = 0f;
 
     private BonusScript _bonusBoost;
+    
 
-    public float spawnDelay = 2f;
-
-    public GameObject bonusPrefab;
 
     public void SpawnBonus()
     {
         Vector3 spawnPosition = transform.position;
         spawnPosition.y = 4;
-        pu = Instantiate(bonusPrefab, spawnPosition, Quaternion.identity);
-        pu.GetComponent<NetworkObject>().Spawn();
-        curPowerUp = pu;
-
+        instantiatedPowerUp = Instantiate(bonusPrefab, spawnPosition, Quaternion.identity);
+        instantiatedPowerUp.GetComponent<NetworkObject>().Spawn();
+        serverPowerUp = instantiatedPowerUp;
         
-    }
-
-    private void OnCollisionEnter(Collision collision)
-    {
-        if (IsServer)
-        {
-            if (collision.collider.gameObject.tag == "DaCar")
-            {
-                pu.GetComponent<NetworkObject>().Despawn();
-                StartCoroutine(RespawnPowerUps());
-                
-            }
-        }
-       
-    }
-
-    IEnumerator RespawnPowerUps()
-    {
-        yield return new WaitForSeconds(spawnDelay);
-        SpawnBonus();
     }
 
 
 
     public void Update()
     {
-        //if(IsServer && curPowerUp == null)
-        //{
-        //    SpawnBonus();
-        //}
+
+        if(IsServer && serverPowerUp == null)
+        {
+            timeAfterDestroyed += Time.deltaTime;
+
+            if(timeAfterDestroyed >= spawnDelay)
+            {
+                SpawnBonus();
+                timeAfterDestroyed = 0f;
+            }
+        }
     }
 
 
@@ -76,12 +64,6 @@ public class PowerUpScript : NetworkBehaviour
         {
             SpawnBonus();
         }
-    }
-
-    [ServerRpc]
-    void ThePowerUpMethodServerRpc(ServerRpcParams rpcParams = default)
-    {
-
     }
 
 }

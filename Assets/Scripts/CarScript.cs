@@ -49,7 +49,7 @@ public class CarScript : NetworkBehaviour
     //    BulletScript bulletBoy = bulletBoy.getComponent
     //}
 
-    
+
     void Update()
     {
         if (IsOwner)
@@ -96,6 +96,8 @@ public class CarScript : NetworkBehaviour
     {
         if (Input.GetKeyDown(KeyCode.F))
         {
+            GetComponent<Transform>().eulerAngles = new Vector3(0, 4, 0);
+
             transform.Rotate(0, 0, 0);
         }
     }
@@ -118,7 +120,7 @@ public class CarScript : NetworkBehaviour
         {
             if (other.gameObject.tag == "BonusBoost")
             {
-                other.GetComponent<NetworkObject>().Despawn();
+                Destroy(other.gameObject);
             }
         }
     }
