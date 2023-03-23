@@ -6,17 +6,16 @@ using Unity.Netcode;
 public class BonusScript : NetworkBehaviour
 {
 
-    public GameObject bonusPrefab;
 
-    private void OnCollisionEnter(Collision collision)
+    private void OnTriggerEnter(Collider other)
     {
         if (IsServer)
         {
-            if(collision.gameObject.tag == "DaCar")
+            if(other.gameObject.tag == "DaCar")
             {
-                Destroy(bonusPrefab);
+                Destroy(gameObject);
 
-                if(bonusPrefab == null)
+                if(gameObject == null)
                 {
                     Debug.Log("yo, it's null!");
                 }

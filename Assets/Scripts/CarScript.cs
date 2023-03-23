@@ -12,6 +12,11 @@ public class CarScript : NetworkBehaviour
 
     private float speed = 50f;
     private float turnSpeed = 175f;
+
+    private float timeStart = 0f;
+    private float timeStop = 3f;
+
+
     private float horizontalInput;
     private float forwardInput;
 
@@ -56,9 +61,8 @@ public class CarScript : NetworkBehaviour
         {
 
             ClickToChangeColor();
-            FlipYourCar();
             ShootBullets();
-
+            FlipYourCar();
 
         }
              
@@ -75,7 +79,10 @@ public class CarScript : NetworkBehaviour
             Vector3 turnCar = new Vector3(0, horizontalInput * Time.deltaTime, 0);
             turnCar *= turnSpeed;
 
+            
             requestPositionToMoveServerRpc(goForward, turnCar);
+            HandleSpeedPls();
+
         }
 
         if (!IsOwner || IsHost)
@@ -114,13 +121,32 @@ public class CarScript : NetworkBehaviour
         
     }
 
+
+
+    //Speed Boost for PowerUps
     private void OnTriggerEnter(Collider other)
     {
         if (IsServer)
         {
             if (other.gameObject.tag == "BonusBoost")
             {
-                Destroy(other.gameObject);
+                speed += 100f;
+                turnSpeed += 50f;
+            }
+        }
+    }
+
+    private void HandleSpeedPls()
+    {
+        if (speed > 50f)
+        {
+            timeStart += Time.deltaTime;
+
+            if(timeStart >= timeStop)
+            {
+                speed = 50f;
+                turnSpeed = 175f;
+                timeStart = 0f;
             }
         }
     }
