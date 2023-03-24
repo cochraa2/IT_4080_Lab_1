@@ -8,6 +8,7 @@ public class CarScript : NetworkBehaviour
     public NetworkVariable<Vector3> PositionChange = new NetworkVariable<Vector3>();
     public NetworkVariable<Vector3> RotationChange = new NetworkVariable<Vector3>();
     public NetworkVariable<Color> VehicleColor = new NetworkVariable<Color>();
+    public NetworkVariable<int> Score = new NetworkVariable<int>();
 
 
     private float speed = 50f;
@@ -15,6 +16,8 @@ public class CarScript : NetworkBehaviour
 
     private float timeStart = 0f;
     private float timeStop = 3f;
+
+    public TMPro.TMP_Text txtScoreDisplay;
 
 
     private float horizontalInput;
@@ -29,41 +32,36 @@ public class CarScript : NetworkBehaviour
         base.OnNetworkSpawn();
         _camera = transform.Find("Camera").GetComponent<Camera>();
         _camera.enabled = IsOwner;
+        Score.OnValueChanged += ClientOnScoreChanged;
 
         _bulletSpawner = transform
             .Find("BarrelTip")
             .transform.Find("BulletSpawner")
             .GetComponent<BulletSpawner>();
-
+     
         netPlayerColor.OnValueChanged += OnPlayerColorChanged;
+        DisplayScore();
     }
 
-    //private void OnCollisionEnter(Collision collision)
-    //{
-    //    if (IsHost)
-    //    {
-    //        if (collision.gameObject.CompareTag("Bullet"))
-    //        {
-    //            HostHandleBulletCollision(collision.gameObject);
-    //        }
-    //    }
-    //}
-
-    //private void HostHandleBulletCollision(GameObject player)
-    //{
-    //    BulletScript bulletBoy = bulletBoy.getComponent
-    //}
+    public void OnCollisionEnter(Collision collision)
+    {
+        if (IsHost)
+        {
+            if (collision.gameObject.CompareTag("Bullet"))
+            {
+                HostHandleBulletCollision(collision.gameObject);
+            }
+        }
+    }
 
 
     void Update()
     {
         if (IsOwner)
         {
-
             ClickToChangeColor();
             ShootBullets();
             FlipYourCar();
-
         }
              
     }
@@ -101,7 +99,7 @@ public class CarScript : NetworkBehaviour
 
     private void FlipYourCar()
     {
-        if (Input.GetKeyDown(KeyCode.F))
+        if (Input.GetKeyDown(KeyCode.F) && IsOwner)
         {
             GetComponent<Transform>().eulerAngles = new Vector3(0, 4, 0);
 
@@ -121,16 +119,39 @@ public class CarScript : NetworkBehaviour
         
     }
 
+    // ------------
+    // Score stuff
+    // ------------
+    private void HostHandleBulletCollision(GameObject carBullet)
+    {
+        BulletScript Bullet = carBullet.GetComponent<BulletScript>();
+        Score.Value -= Bullet.Damage.Value;
+        ulong ownerClientId = carBullet.GetComponent<NetworkObject>().OwnerClientId;
+        CarScript otherPlayer = NetworkManager.Singleton.ConnectedClients[
+            ownerClientId].PlayerObject.GetComponent<CarScript>();
+        otherPlayer.Score.Value += Bullet.Damage.Value;
+        Destroy(carBullet);
+    }
+    public void DisplayScore()
+    {
+        txtScoreDisplay.text = Score.Value.ToString();
+    }
+
+    private void ClientOnScoreChanged(int previous, int current)
+    {
+        DisplayScore();
+    }
 
 
-    //Speed Boost for PowerUps
+
+    // Speed Boost for PowerUps
     private void OnTriggerEnter(Collider other)
     {
         if (IsServer)
         {
             if (other.gameObject.tag == "BonusBoost")
             {
-                speed += 100f;
+                speed += 50f;
                 turnSpeed += 50f;
             }
         }
@@ -183,7 +204,7 @@ public class CarScript : NetworkBehaviour
     {
         if (Input.GetKeyDown(KeyCode.C))
         {
-            RequestNextColorServerRpc();
+            requestNextColorServerRpc();
         }
     }
 
@@ -205,7 +226,7 @@ public class CarScript : NetworkBehaviour
     }
 
     [ServerRpc]
-    void RequestNextColorServerRpc(ServerRpcParams serverRpcParams = default)
+    void requestNextColorServerRpc(ServerRpcParams serverRpcParams = default)
     {
         if (!IsServer && !IsHost)
             return;
