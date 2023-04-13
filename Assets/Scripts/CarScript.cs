@@ -29,6 +29,7 @@ public class CarScript : NetworkBehaviour
     private Camera _camera;
     private BulletSpawner _bulletSpawner;
     private PowerUpScript _bonusBoost;
+    private BonusScript bonusTings;
 
     public override void OnNetworkSpawn()
     {
@@ -94,26 +95,7 @@ public class CarScript : NetworkBehaviour
 
     private void FixedUpdate()
     {
-        //if (IsOwner)
-        //{
-        //    movementInputs();
-        //    Vector3 goForward = new Vector3(forwardInput * Time.fixedDeltaTime, 0, 0);
-        //    goForward *= carSpeed.Value;
-
-        //    Vector3 turnCar = new Vector3(0, horizontalInput * Time.fixedDeltaTime, 0);
-        //    turnCar *= carTurnSpeed.Value;
-
-
-        //    requestPositionToMoveServerRpc(goForward, turnCar);
-        //    //HandleSpeedPls();
-
-        //}
-
-        //if (!IsOwner || IsHost)
-        //{
-        //    transform.Translate(PositionChange.Value);
-        //    transform.Rotate(RotationChange.Value);
-        //}
+        
     }
 
 
@@ -183,6 +165,7 @@ public class CarScript : NetworkBehaviour
                 //_bulletSpawner.bulletSpeed += 130f;
 
                 HostHandlePowerUps(other.gameObject);
+               // HandleTheSpeedServerRpc();
             }
         }
     }
@@ -212,17 +195,6 @@ public class CarScript : NetworkBehaviour
         carTurnSpeed.Value += Pickup.increasedTurnSpeed.Value;
         _bulletSpawner.bulletSpeed += 70f;
         //ulong ownerClientId = pickupBall.GetComponent<NetworkObject>().OwnerClientId;
-
-        timeStart += Time.deltaTime;
-
-        if (timeStart >= timeStop)
-        {
-            carSpeed.Value -= Pickup.increasedSpeed.Value;
-            carTurnSpeed.Value -= Pickup.increasedTurnSpeed.Value;
-            _bulletSpawner.bulletSpeed -= 70f;
-            timeStart = 0f;
-        }
-
         Destroy(pickupBall);
     }
 
@@ -295,5 +267,23 @@ public class CarScript : NetworkBehaviour
         Debug.Log($"host color index = {hostColorIndex} for {serverRpcParams.Receive.SenderClientId}");
         netPlayerColor.Value = availColors[hostColorIndex];
     }
+
+    //    [ServerRpc]
+    //    void HandleTheSpeedServerRpc(ServerRpcParams serverRpcParams = default)
+    //    {
+    //        if (!IsServer && IsHost)
+    //            return;
+
+    //        timeStart += Time.deltaTime;
+
+    //        if (timeStart >= timeStop)
+    //        {
+    //            carSpeed.Value -= bonusTings.increasedSpeed.Value;
+    //            carTurnSpeed.Value -= bonusTings.increasedTurnSpeed.Value;
+    //            _bulletSpawner.bulletSpeed -= 70f;
+    //            timeStart = 0f;
+    //        }
+
+    //    }
 
 }
