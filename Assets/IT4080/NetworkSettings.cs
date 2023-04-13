@@ -9,14 +9,6 @@ namespace It4080
 {
     public class NetworkSettings : MonoBehaviour
     {
-        public Button btnHost;
-        public Button btnServer;
-        public Button btnClient;
-        public TMPro.TMP_InputField inIpAddress;
-        public TMPro.TMP_InputField inPort;
-        public TMPro.TMP_Text txtStatus;
-        public GameObject ControlsContainer;
-
         public event Action<IPAddress, ushort> startServer;
         public event Action<IPAddress, ushort> startHost;
         public event Action<IPAddress, ushort> startClient;
@@ -24,6 +16,36 @@ namespace It4080
         private IPAddress ipAddress = IPAddress.Parse("0.0.0.0");
         private ushort port = 0;
 
+        public Button btnHost;
+        public Button btnServer;
+        public Button btnClient;
+        public TMPro.TMP_InputField inIpAddress;
+        public TMPro.TMP_InputField inPort;
+    public TMPro.TMP_Text txtStatus;
+        public GameObject ControlsContainer;
+
+        private bool showHost = true;
+        public bool ShowHost {
+            get => showHost;
+            set => setShowHost(value);
+        }
+
+        private bool showServer = true;
+        public bool ShowServer {
+            get => showServer;
+            set => setShowServer(value);
+        }
+        
+        private void setShowHost(bool val)
+        {
+            showHost = val;
+            btnHost.gameObject.SetActive(val);
+        }
+
+        private void setShowServer(bool val){
+            showServer = val;
+            btnServer.gameObject.SetActive(val);
+        }
 
         void Start()
         {
@@ -51,10 +73,9 @@ namespace It4080
         // ----------------------
         // Events
         // ----------------------
-
         private void BtnHostOnClick()
         {
-            if (populateVars())
+            if (populateVars() && startHost != null)
             {
                 startHost.Invoke(ipAddress, port);
             }            
@@ -63,16 +84,17 @@ namespace It4080
 
         private void BtnServerOnClick()
         {
-            if (populateVars())
+            if (populateVars() && startServer != null)
             {
                 startServer.Invoke(ipAddress, port);
+                
             }                
         }
 
 
         private void BtnClientOnClick()
         {
-            if (populateVars())
+            if (populateVars() && startClient != null)
             {
                 startClient.Invoke(ipAddress, port);
             }                

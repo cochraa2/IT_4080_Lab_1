@@ -10,9 +10,12 @@ public class CarScript : NetworkBehaviour
     public NetworkVariable<Color> VehicleColor = new NetworkVariable<Color>();
     public NetworkVariable<int> Score = new NetworkVariable<int>();
 
+    public NetworkVariable<float> carSpeed = new NetworkVariable<float>(50);
+    public NetworkVariable<float> carTurnSpeed = new NetworkVariable<float>(175);
 
-    private float speed = 50f;
-    private float turnSpeed = 175f;
+
+    //private float speed = 50f;
+    //private float turnSpeed = 175f;
 
     private float timeStart = 0f;
     private float timeStop = 3f;
@@ -63,23 +66,20 @@ public class CarScript : NetworkBehaviour
             ShootBullets();
             FlipYourCar();
         }
-             
-    }
 
-    private void FixedUpdate()
-    {
+
         if (IsOwner)
         {
             movementInputs();
-            Vector3 goForward = new Vector3(forwardInput * Time.deltaTime, 0, 0);
-            goForward *= speed;
+            Vector3 goForward = new Vector3(forwardInput * Time.smoothDeltaTime, 0, 0);
+            goForward *= carSpeed.Value;
 
-            Vector3 turnCar = new Vector3(0, horizontalInput * Time.deltaTime, 0);
-            turnCar *= turnSpeed;
+            Vector3 turnCar = new Vector3(0, horizontalInput * Time.smoothDeltaTime, 0);
+            turnCar *= carTurnSpeed.Value;
 
-            
+
             requestPositionToMoveServerRpc(goForward, turnCar);
-            HandleSpeedPls();
+            //HandleSpeedPls();
 
         }
 
@@ -88,6 +88,32 @@ public class CarScript : NetworkBehaviour
             transform.Translate(PositionChange.Value);
             transform.Rotate(RotationChange.Value);
         }
+
+
+    }
+
+    private void FixedUpdate()
+    {
+        //if (IsOwner)
+        //{
+        //    movementInputs();
+        //    Vector3 goForward = new Vector3(forwardInput * Time.fixedDeltaTime, 0, 0);
+        //    goForward *= carSpeed.Value;
+
+        //    Vector3 turnCar = new Vector3(0, horizontalInput * Time.fixedDeltaTime, 0);
+        //    turnCar *= carTurnSpeed.Value;
+
+
+        //    requestPositionToMoveServerRpc(goForward, turnCar);
+        //    //HandleSpeedPls();
+
+        //}
+
+        //if (!IsOwner || IsHost)
+        //{
+        //    transform.Translate(PositionChange.Value);
+        //    transform.Rotate(RotationChange.Value);
+        //}
     }
 
 
@@ -141,36 +167,65 @@ public class CarScript : NetworkBehaviour
     {
         DisplayScore();
     }
+    //-------------------------------------------
+    // Speed Boost & PowerUp Things
+    //-------------------------------------------
 
 
-
-    // Speed Boost for PowerUps
     private void OnTriggerEnter(Collider other)
     {
         if (IsServer)
         {
             if (other.gameObject.tag == "BonusBoost")
             {
-                speed += 50f;
-                turnSpeed += 50f;
+                //carSpeed.Value += 50f;
+                //carTurnSpeed.Value += 50f;
+                //_bulletSpawner.bulletSpeed += 130f;
+
+                HostHandlePowerUps(other.gameObject);
             }
         }
     }
 
     private void HandleSpeedPls()
     {
-        if (speed > 50f)
-        {
-            timeStart += Time.deltaTime;
-
-            if(timeStart >= timeStop)
+            if (IsOwner && carSpeed.Value > 50f)
             {
-                speed = 50f;
-                turnSpeed = 175f;
-                timeStart = 0f;
+                timeStart += Time.deltaTime;
+
+                if (timeStart >= timeStop)
+                {
+                    carSpeed.Value = 50f;
+                    carTurnSpeed.Value = 175f;
+                    _bulletSpawner.bulletSpeed = 70f;
+                    timeStart = 0f;
+                }
             }
-        }
+        
+
     }
+
+    private void HostHandlePowerUps(GameObject pickupBall)
+    {
+        BonusScript Pickup = pickupBall.GetComponent<BonusScript>();
+        carSpeed.Value += Pickup.increasedSpeed.Value;
+        carTurnSpeed.Value += Pickup.increasedTurnSpeed.Value;
+        _bulletSpawner.bulletSpeed += 70f;
+        //ulong ownerClientId = pickupBall.GetComponent<NetworkObject>().OwnerClientId;
+
+        timeStart += Time.deltaTime;
+
+        if (timeStart >= timeStop)
+        {
+            carSpeed.Value -= Pickup.increasedSpeed.Value;
+            carTurnSpeed.Value -= Pickup.increasedTurnSpeed.Value;
+            _bulletSpawner.bulletSpeed -= 70f;
+            timeStart = 0f;
+        }
+
+        Destroy(pickupBall);
+    }
+
 
     //------------------
     // Color Things
@@ -178,7 +233,7 @@ public class CarScript : NetworkBehaviour
 
     private static Color[] availColors = new Color[] {
             Color.black, Color.blue, Color.cyan,
-            Color.gray, Color.green, Color.yellow };
+            Color.gray, Color.green, Color.yellow, Color.red, Color.magenta, Color.white, Color.clear };
     private int hostColorIndex = 0;
     public NetworkVariable<Color> netPlayerColor = new NetworkVariable<Color>();
 
@@ -208,7 +263,7 @@ public class CarScript : NetworkBehaviour
         }
     }
 
-
+    //---------------------------------------------------------
 
     //------------------
     // RPC

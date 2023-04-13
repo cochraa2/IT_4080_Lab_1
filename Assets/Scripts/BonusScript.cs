@@ -6,6 +6,9 @@ using Unity.Netcode;
 public class BonusScript : NetworkBehaviour
 {
 
+    public NetworkVariable<float> increasedSpeed = new NetworkVariable<float>(55);
+    public NetworkVariable<float> increasedTurnSpeed = new NetworkVariable<float>(175);
+
 
     private void OnTriggerEnter(Collider other)
     {
