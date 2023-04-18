@@ -11,9 +11,11 @@ public class KartController : MonoBehaviour
 
     public float acceleration = 500f;
     public float brakingForce = 300f;
+    public float maxTurnDistance = 30f;
 
     private float currentAcceleration = 0f;
     private float currentBrakeForce = 0f;
+    private float currentTurnDistance = 0f;
 
     private void FixedUpdate()
     {
@@ -31,15 +33,22 @@ public class KartController : MonoBehaviour
             currentBrakeForce = 0f;
         }
 
-        //Apply Acceleration to Front Wheels
+        //Apply Acceleration to All Wheels
 
-        FR.motorTorque = currentAcceleration;
         FL.motorTorque = currentAcceleration;
+        BR.motorTorque = currentAcceleration;
+        BL.motorTorque = currentAcceleration;
+        FR.motorTorque = currentAcceleration;
 
         FR.brakeTorque = currentBrakeForce;
         FL.brakeTorque = currentBrakeForce;
         BR.brakeTorque = currentBrakeForce;
         BL.brakeTorque = currentBrakeForce;
+
+        currentTurnDistance = maxTurnDistance * Input.GetAxis("Horizontal");
+
+        FR.steerAngle = currentTurnDistance;
+        FL.steerAngle = currentTurnDistance;
     }
 
 }
