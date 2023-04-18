@@ -10,12 +10,12 @@ public class CarScript : NetworkBehaviour
     public NetworkVariable<Color> VehicleColor = new NetworkVariable<Color>();
     public NetworkVariable<int> Score = new NetworkVariable<int>();
 
-    public NetworkVariable<float> carSpeed = new NetworkVariable<float>(50);
-    public NetworkVariable<float> carTurnSpeed = new NetworkVariable<float>(175);
+    //public NetworkVariable<float> carSpeed = new NetworkVariable<float>(50);
+    //public NetworkVariable<float> carTurnSpeed = new NetworkVariable<float>(175);
 
 
-    //private float speed = 50f;
-    //private float turnSpeed = 175f;
+    private float speed = 50f;
+    private float turnSpeed = 175f;
 
     private float timeStart = 0f;
     private float timeStop = 3f;
@@ -73,14 +73,14 @@ public class CarScript : NetworkBehaviour
         {
             movementInputs();
             Vector3 goForward = new Vector3(forwardInput * Time.smoothDeltaTime, 0, 0);
-            goForward *= carSpeed.Value;
+            goForward *= speed;
 
             Vector3 turnCar = new Vector3(0, horizontalInput * Time.smoothDeltaTime, 0);
-            turnCar *= carTurnSpeed.Value;
+            turnCar *= turnSpeed;
 
 
             requestPositionToMoveServerRpc(goForward, turnCar);
-            //HandleSpeedPls();
+            HandleSpeedPls();
 
         }
 
@@ -172,14 +172,14 @@ public class CarScript : NetworkBehaviour
 
     private void HandleSpeedPls()
     {
-            if (IsOwner && carSpeed.Value > 50f)
+            if (IsOwner && speed > 50f)
             {
                 timeStart += Time.deltaTime;
 
                 if (timeStart >= timeStop)
                 {
-                    carSpeed.Value = 50f;
-                    carTurnSpeed.Value = 175f;
+                    speed = 50f;
+                    turnSpeed = 175f;
                     _bulletSpawner.bulletSpeed = 70f;
                     timeStart = 0f;
                 }
@@ -191,8 +191,8 @@ public class CarScript : NetworkBehaviour
     private void HostHandlePowerUps(GameObject pickupBall)
     {
         BonusScript Pickup = pickupBall.GetComponent<BonusScript>();
-        carSpeed.Value += Pickup.increasedSpeed.Value;
-        carTurnSpeed.Value += Pickup.increasedTurnSpeed.Value;
+        speed += Pickup.increasedSpeed.Value;
+        turnSpeed += Pickup.increasedTurnSpeed.Value;
         _bulletSpawner.bulletSpeed += 70f;
         //ulong ownerClientId = pickupBall.GetComponent<NetworkObject>().OwnerClientId;
         Destroy(pickupBall);
@@ -285,5 +285,6 @@ public class CarScript : NetworkBehaviour
     //        }
 
     //    }
+
 
 }
