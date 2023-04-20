@@ -1,20 +1,17 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Unity.Netcode;
 
-public class CheckpointScript : NetworkBehaviour
+public class CheckpointScript : MonoBehaviour
 {
     private TrackCheckpoints trackCheckpoints;
 
     private void OnTriggerEnter(Collider other)
     {
-        if (IsServer)
+
+        if (other.gameObject.CompareTag("DaCar"))
         {
-            if (other.gameObject.tag == "DaCar")
-            {
-                ;
-            }
+            ;
         }
         
     }
