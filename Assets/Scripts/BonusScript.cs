@@ -8,22 +8,22 @@ public class BonusScript : NetworkBehaviour
 
     public NetworkVariable<float> increasedSpeed = new NetworkVariable<float>(55);
     public NetworkVariable<float> increasedTurnSpeed = new NetworkVariable<float>(175);
+    public NetworkVariable<float> increasedBulletSpeed = new NetworkVariable<float>(70);
 
 
-    private void OnTriggerEnter(Collider other)
-    {
-        if (IsServer)
-        {
-            if(other.gameObject.tag == "DaCar")
-            {
-                Destroy(gameObject);
+    //private void OnTriggerEnter(Collider other)
+    //{
+    //    if (IsServer)
+    //    {
+    //        if(other.gameObject.tag == "DaCar")
+    //        {
 
-                if(gameObject == null)
-                {
-                    Debug.Log("yo, it's null!");
-                }
-            }
-            
-        }
-    }
+    //            Destroy(gameObject);
+
+    //        }
+
+    //    }
+    //}
+
+   
 }
