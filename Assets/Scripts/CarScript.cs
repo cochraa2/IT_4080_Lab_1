@@ -164,15 +164,6 @@ public class CarScript : NetworkBehaviour
         playerPickedUp._bulletSpawner.bulletSpeed += Pickup.increasedBulletSpeed.Value;
    
         timeStart += Time.deltaTime;
-
-        if (timeStart >= timeStop)
-        {
-            playerPickedUp.carSpeed.Value -= Pickup.increasedSpeed.Value;
-            playerPickedUp.carTurnSpeed.Value -= Pickup.increasedTurnSpeed.Value;
-            playerPickedUp._bulletSpawner.bulletSpeed -= Pickup.increasedBulletSpeed.Value;
-            timeStart = 0f;
-        }
-
     }
 
 
@@ -182,25 +173,33 @@ public class CarScript : NetworkBehaviour
         {
             if (other.gameObject.CompareTag("BonusBoost"))
             {
-                ServerHandleSpeedPowerUp(other.gameObject);  
-             
+                ServerHandleSpeedPowerUp(other.gameObject);
+
+                if (timeStart >= timeStop)
+                {
+                    carSpeed.Value -= bonusTings.increasedSpeed.Value;
+                    carTurnSpeed.Value -= bonusTings.increasedTurnSpeed.Value;
+                    _bulletSpawner.bulletSpeed -= bonusTings.increasedBulletSpeed.Value;
+                    timeStart = 0f;
+                }
+
+            }
+
+            if (other.gameObject.CompareTag("Checkpoint"))
+            {
+                ulong ownerClientId = gameObject.GetComponent<NetworkObject>().OwnerClientId;
+                CarScript playerhit = NetworkManager.Singleton.ConnectedClients[
+                                        ownerClientId].PlayerObject.GetComponent<CarScript>();
+                Destroy(other.gameObject);
+                Debug.Log($"Checkpoint hit by ID: {ownerClientId}");
             }
         }
     }
 
-    //private void ClientOnSpeedChanged(float previous, float current)
-    //{
+    //---------------------
+    // Checkpoint Handling
+    //---------------------
 
-    //    timeStart += Time.deltaTime;
-
-    //    if (timeStart >= timeStop)
-    //    {
-    //        carSpeed.Value -= bonusTings.increasedSpeed.Value;
-    //        carTurnSpeed.Value -= bonusTings.increasedTurnSpeed.Value;
-    //        _bulletSpawner.bulletSpeed -= bonusTings.increasedBulletSpeed.Value;
-    //        timeStart = 0f;
-    //    }
-    //}
 
     //------------------
     // Color Things
