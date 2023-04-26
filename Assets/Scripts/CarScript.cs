@@ -11,8 +11,8 @@ public class CarScript : NetworkBehaviour
     public NetworkVariable<int> Score = new NetworkVariable<int>();
     public NetworkVariable<int> Lap = new NetworkVariable<int>();
 
-    public NetworkVariable<float> carSpeed = new NetworkVariable<float>(75);
-    public NetworkVariable<float> carTurnSpeed = new NetworkVariable<float>(175);
+    public NetworkVariable<float> carSpeed = new NetworkVariable<float>(75f);
+    public NetworkVariable<float> carTurnSpeed = new NetworkVariable<float>(175f);
 
     private int lastCheckpoint;
 
@@ -52,6 +52,9 @@ public class CarScript : NetworkBehaviour
         netPlayerColor.OnValueChanged += OnPlayerColorChanged;
         DisplayLap();
         DisplaySpeed();
+
+        carSpeed.Value = 75f;
+        carTurnSpeed.Value = 175f;
     }
 
 
@@ -209,10 +212,10 @@ public class CarScript : NetworkBehaviour
         {
             serverTimeLeft -= Time.deltaTime;
 
-            if (serverTimeLeft <= 0f && carSpeed.Value > 50f)
+            if (serverTimeLeft <= 0f && carSpeed.Value > 80f)
             {
                 carSpeed.Value = 75f;
-                carTurnSpeed.Value = 175;
+                carTurnSpeed.Value = 175f;
                 _bulletSpawner.bulletSpeed = 70f;
                 serverTimeLeft = 0f;
             }

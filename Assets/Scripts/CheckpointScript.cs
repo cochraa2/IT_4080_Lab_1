@@ -27,11 +27,6 @@ public class CheckpointScript : MonoBehaviour
         
     }
 
-    //public void SetTrackCheckpoints(ArenaScript trackCheckpoints)
-    //{
-    //    this.trackCheckpoints = trackCheckpoints;
-    //}
-
 
   
 }
