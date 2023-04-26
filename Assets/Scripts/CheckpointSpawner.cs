@@ -13,6 +13,7 @@ public class CheckpointSpawner : NetworkBehaviour
     private GameObject serverCheckpoint = null;
     private Transform spawnPointTransform;
     private GameObject instantiatedCheckpoint;
+    public Rigidbody checkRigid;
 
     private float spawnDelay = 2f;
     private float timeAfterDestroyed = 0f;
@@ -44,11 +45,12 @@ public class CheckpointSpawner : NetworkBehaviour
     {
         if (checkpointPrefab != null && spawnOnLoad)
         {
-            DoSomethingServerSide(NetworkManager.Singleton.LocalClientId);
+            //DoSomethingServerSide(NetworkManager.Singleton.LocalClientId);
+            SpawnCheckpointsForPlayersServerRpc();
         }
     }
 
-    private void DoSomethingServerSide(ulong clientId)
+    private void DoSomethingServerSide(ulong clientId, ServerRpcParams rpcParams = default)
     {
         // If isn't the Server/Host then we should early return here!
         if (!IsServer) return;
@@ -64,12 +66,14 @@ public class CheckpointSpawner : NetworkBehaviour
             }
         };
 
-        // Let's imagine that you need to compute a Random integer and want to send that to a client
-        Vector3 spawnPosition = transform.position;
-        spawnPosition.y -= 2;
-        instantiatedCheckpoint = Instantiate(checkpointPrefab, spawnPosition, Quaternion.identity);
-        instantiatedCheckpoint.gameObject.GetComponent<NetworkObject>().Spawn();
+        // Send something to client
+        //Vector3 spawnPosition = transform.position;
+        //spawnPosition.y -= 2;
+        //instantiatedCheckpoint = Instantiate(checkpointPrefab, spawnPosition, Quaternion.identity);
+        //instantiatedCheckpoint.gameObject.GetComponent<NetworkObject>().SpawnWithOwnership(rpcParams.Receive.SenderClientId);
 
+        //Rigidbody newBullet = Instantiate(checkRigid, transform.position, transform.rotation);
+        //newBullet.gameObject.GetComponent<NetworkObject>().SpawnWithOwnership(rpcParams.Receive.SenderClientId);
 
 
 
@@ -84,5 +88,15 @@ public class CheckpointSpawner : NetworkBehaviour
 
         // Run your client-side logic here!!
         serverCheckpoint = instantiatedCheckpoint;
+    }
+
+    [ServerRpc]
+    private void SpawnCheckpointsForPlayersServerRpc(ServerRpcParams rpcParams = default)
+    {
+        Vector3 spawnPosition = transform.position;
+        spawnPosition.y -= 2;
+        instantiatedCheckpoint = Instantiate(checkpointPrefab, spawnPosition, Quaternion.identity);
+        instantiatedCheckpoint.gameObject.GetComponent<NetworkObject>().SpawnWithOwnership(rpcParams.Receive.SenderClientId);
+
     }
 }

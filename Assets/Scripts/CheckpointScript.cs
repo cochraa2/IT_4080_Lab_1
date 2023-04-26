@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Netcode;
 
-public class CheckpointScript : MonoBehaviour
+public class CheckpointScript : NetworkBehaviour
 {
     private TrackCheckpoints trackCheckpoints;
 
@@ -11,7 +12,8 @@ public class CheckpointScript : MonoBehaviour
 
         if (other.gameObject.CompareTag("DaCar"))
         {
-            ;
+            //NetworkObject netObject = GetComponent<NetworkObject>();
+            //NetworkObject.NetworkHide(netObject);
         }
         
     }

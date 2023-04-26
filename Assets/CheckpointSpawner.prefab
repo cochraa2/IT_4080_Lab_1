@@ -113,6 +113,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spawnOnLoad: 1
   checkpointPrefab: {fileID: 7995454249396307190, guid: 36347dd4d8ddd4d2aaad3da1bb846790, type: 3}
+  checkRigid: {fileID: -8104316446675099568, guid: 36347dd4d8ddd4d2aaad3da1bb846790, type: 3}
 --- !u!114 &9092517904071149941
 MonoBehaviour:
   m_ObjectHideFlags: 0

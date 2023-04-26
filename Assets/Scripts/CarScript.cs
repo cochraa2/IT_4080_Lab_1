@@ -30,6 +30,7 @@ public class CarScript : NetworkBehaviour
     private BulletSpawner _bulletSpawner;
     private PowerUpScript _bonusBoost;
     private BonusScript bonusTings;
+    private CheckpointSpawner _checkpointSpawner;
 
 
     public override void OnNetworkSpawn()
@@ -51,12 +52,13 @@ public class CarScript : NetworkBehaviour
 
     void Update()
     {
-        if (IsOwner)
+        if (!IsOwner)
         {
-            ClickToChangeColor();
-            ShootBullets();
-            FlipYourCar();
+            return;   
         }
+        ClickToChangeColor();
+        ShootBullets();
+        FlipYourCar();
 
         DecreaseMySpeed();
         
@@ -186,6 +188,9 @@ public class CarScript : NetworkBehaviour
                 ulong ownerClientId = gameObject.GetComponent<NetworkObject>().OwnerClientId;
                 CarScript playerhit = NetworkManager.Singleton.ConnectedClients[
                                         ownerClientId].PlayerObject.GetComponent<CarScript>();
+                NetworkObject netObject = other.GetComponent<NetworkObject>();
+
+                netObject.NetworkHide(ownerClientId);
 
                 Debug.Log($"Checkpoint hit by ID: {ownerClientId}");
             }
@@ -193,20 +198,16 @@ public class CarScript : NetworkBehaviour
     }
 
     private void DecreaseMySpeed()
-    {
-        ulong ownerClientId = gameObject.GetComponent<NetworkObject>().OwnerClientId;
-        CarScript playerhit = NetworkManager.Singleton.ConnectedClients[
-                                ownerClientId].PlayerObject.GetComponent<CarScript>();
-
+    { 
         if (IsServer && serverTimeLeft > 0f)
         {
             serverTimeLeft -= Time.deltaTime;
 
             if (serverTimeLeft <= 0f && carSpeed.Value > 55f)
             {
-                playerhit.carSpeed.Value -= bonusTings.increasedSpeed.Value;
-                playerhit.carTurnSpeed.Value -= bonusTings.increasedTurnSpeed.Value;
-                playerhit._bulletSpawner.bulletSpeed -= bonusTings.increasedBulletSpeed.Value;
+                carSpeed.Value -= bonusTings.increasedSpeed.Value;
+                carTurnSpeed.Value -= bonusTings.increasedTurnSpeed.Value;
+                _bulletSpawner.bulletSpeed -= bonusTings.increasedBulletSpeed.Value;
                 serverTimeLeft = 0f;
             }
         }
