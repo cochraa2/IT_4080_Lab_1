@@ -6,7 +6,10 @@ using Unity.Netcode;
 public class ArenaScript : NetworkBehaviour
 {
     public CarScript carPrefab;
-   
+
+    private Vector3 minPosition = new Vector3(-27, 5, -102);
+    private Vector3 maxPosition = new Vector3(-50, 5, -130);
+
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
@@ -28,9 +31,14 @@ public class ArenaScript : NetworkBehaviour
 
     private CarScript SpawnPlayerForClient(ulong clientId)
     {
+        Vector3 randomPosition = new Vector3(
+            Random.Range(minPosition.x, maxPosition.x),
+            Random.Range(minPosition.y, maxPosition.y),
+            Random.Range(minPosition.z - clientId, maxPosition.z));
+
         // Pick a location to spawn the prefab at.  This is a simple
         // solution to illustrate setting the position.
-        Vector3 spawnPosition = new Vector3(0, 5, clientId * 5);
+        Vector3 spawnPosition = randomPosition;
         CarScript playerSpawn = Instantiate(
                                 carPrefab,
                                 spawnPosition,
@@ -41,4 +49,13 @@ public class ArenaScript : NetworkBehaviour
         playerSpawn.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId);
         return playerSpawn;
     }
+
+    //private CarScript RespawnPlayer(ulong clientId)
+    //{
+    //    Vector3 checkpointRespawn = new Vector3();
+    //    if(carPrefab.passedCheckpoints)
+
+
+    //    return;
+    //}
 }

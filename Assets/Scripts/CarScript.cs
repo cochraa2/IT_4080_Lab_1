@@ -14,7 +14,10 @@ public class CarScript : NetworkBehaviour
     public NetworkVariable<float> carSpeed = new NetworkVariable<float>(75f);
     public NetworkVariable<float> carTurnSpeed = new NetworkVariable<float>(175f);
 
-    private int lastCheckpoint;
+    public bool correctCheckpoint;
+    public List<CheckpointScript> passedCheckpoints = new List<CheckpointScript>();
+
+//    private int lastCheckpoint;
 
 
     //private float speed = 50f;
@@ -199,7 +202,7 @@ public class CarScript : NetworkBehaviour
 
                 Debug.Log($"Checkpoint hit by ID: {ownerClientId}");
                 HandleCheckpoints(other.gameObject.GetComponent<CheckpointScript>());
-                Debug.Log("Last Checkpoint value: " + lastCheckpoint);
+                //Debug.Log("Last Checkpoint value: " + lastCheckpoint);
 
 
             }
@@ -238,31 +241,27 @@ public class CarScript : NetworkBehaviour
 
     public void HandleCheckpoints(CheckpointScript checkpoint)
     {
-        if(checkpoint.name == "CheckpointSingle" && lastCheckpoint == 0)
+        if(checkpoint.name == passedCheckpoints.Count.ToString())
         {
-            lastCheckpoint++;
+            //lastCheckpoint++;
+            passedCheckpoints.Add(checkpoint.GetComponent<CheckpointScript>());
+            correctCheckpoint = true;
+            Debug.Log("Checkpoints passed: " + passedCheckpoints.Count);
+            if (passedCheckpoints.Count >= 6)
+            {
+                //lastCheckpoint = 0;
+                passedCheckpoints.Clear();
+                //passedCheckpoints.Add(checkpoint.GetComponent<CheckpointScript>());
+                Debug.Log("Checkpoints passed: " + passedCheckpoints.Count);
+                Lap.Value++;
+            }
         }
-        if (checkpoint.name == "CheckpointSingle 2" && lastCheckpoint == 1)
+        else
         {
-            lastCheckpoint++;
+            Debug.Log("Wrong checkpoint bruh");
         }
-        if (checkpoint.name == "CheckpointSingle 3" && lastCheckpoint == 2)
-        {
-            lastCheckpoint++;
-        }
-        if (checkpoint.name == "CheckpointSingle 4" && lastCheckpoint == 3)
-        {
-            lastCheckpoint++;
-        }
-        if (checkpoint.name == "CheckpointSingle 5" && lastCheckpoint == 4)
-        {
-            lastCheckpoint++;
-        }
-        if (checkpoint.name == "CheckpointSingle LAST" && lastCheckpoint == 5)
-        {
-            lastCheckpoint = 0;
-            Lap.Value++;
-        }
+        
+        
     }
 
     //------------------
