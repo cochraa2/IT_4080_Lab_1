@@ -6,7 +6,7 @@ using Unity.Netcode;
 public class ArenaScript : NetworkBehaviour
 {
     public CarScript carPrefab;
-
+   
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
@@ -15,6 +15,7 @@ public class ArenaScript : NetworkBehaviour
         {
             SpawnAllPlayers();
         }
+
     }
 
     private void SpawnAllPlayers()

@@ -2422,7 +2422,7 @@ GameObject:
   - component: {fileID: 879720077610658660}
   - component: {fileID: 4339595383116132693}
   m_Layer: 5
-  m_Name: HboxControls
+  m_Name: HboxConnectControls
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

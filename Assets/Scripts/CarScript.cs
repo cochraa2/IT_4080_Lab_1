@@ -9,15 +9,22 @@ public class CarScript : NetworkBehaviour
     public NetworkVariable<Vector3> RotationChange = new NetworkVariable<Vector3>();
     public NetworkVariable<Color> VehicleColor = new NetworkVariable<Color>();
     public NetworkVariable<int> Score = new NetworkVariable<int>();
+    public NetworkVariable<int> Lap = new NetworkVariable<int>();
+
+    public NetworkVariable<float> carSpeed = new NetworkVariable<float>(75f);
+    public NetworkVariable<float> carTurnSpeed = new NetworkVariable<float>(175f);
+
+    private int lastCheckpoint;
 
 
-    private float speed = 50f;
-    private float turnSpeed = 175f;
+    //private float speed = 50f;
+    //private float turnSpeed = 175f;
 
-    private float timeStart = 0f;
-    private float timeStop = 3f;
+    private float serverTimeLeft = 0f;
+    private float serverBonusDuration = 3f;
 
-    public TMPro.TMP_Text txtScoreDisplay;
+    public TMPro.TMP_Text txtLapDisplay;
+    public TMPro.TMP_Text txtSpeedDisplay;
 
 
     private float horizontalInput;
@@ -26,13 +33,16 @@ public class CarScript : NetworkBehaviour
     private Camera _camera;
     private BulletSpawner _bulletSpawner;
     private PowerUpScript _bonusBoost;
+    private BonusScript bonusTings;
+
 
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
         _camera = transform.Find("Camera").GetComponent<Camera>();
         _camera.enabled = IsOwner;
-        Score.OnValueChanged += ClientOnScoreChanged;
+        Lap.OnValueChanged += ClientOnLapChange;
+        carSpeed.OnValueChanged += ClientOnSpeedChange;
 
         _bulletSpawner = transform
             .Find("BarrelTip")
@@ -40,30 +50,27 @@ public class CarScript : NetworkBehaviour
             .GetComponent<BulletSpawner>();
      
         netPlayerColor.OnValueChanged += OnPlayerColorChanged;
-        DisplayScore();
-    }
+        DisplayLap();
+        DisplaySpeed();
 
-    public void OnCollisionEnter(Collision collision)
-    {
-        if (IsHost)
-        {
-            if (collision.gameObject.CompareTag("Bullet"))
-            {
-                HostHandleBulletCollision(collision.gameObject);
-            }
-        }
+        carSpeed.Value = 75f;
+        carTurnSpeed.Value = 175f;
     }
 
 
     void Update()
     {
-        if (IsOwner)
+        if (!IsOwner)
         {
-            ClickToChangeColor();
-            ShootBullets();
-            FlipYourCar();
+            return;   
         }
-             
+        ClickToChangeColor();
+        ShootBullets();
+        FlipYourCar();
+
+        DecreaseMySpeed();
+        
+
     }
 
     private void FixedUpdate()
@@ -71,15 +78,14 @@ public class CarScript : NetworkBehaviour
         if (IsOwner)
         {
             movementInputs();
-            Vector3 goForward = new Vector3(forwardInput * Time.deltaTime, 0, 0);
-            goForward *= speed;
+            Vector3 goForward = new Vector3(forwardInput * Time.smoothDeltaTime, 0, 0);
+            goForward *= carSpeed.Value;
 
-            Vector3 turnCar = new Vector3(0, horizontalInput * Time.deltaTime, 0);
-            turnCar *= turnSpeed;
+            Vector3 turnCar = new Vector3(0, horizontalInput * Time.smoothDeltaTime, 0);
+            turnCar *= carTurnSpeed.Value;
 
-            
+
             requestPositionToMoveServerRpc(goForward, turnCar);
-            HandleSpeedPls();
 
         }
 
@@ -122,6 +128,17 @@ public class CarScript : NetworkBehaviour
     // ------------
     // Score stuff
     // ------------
+
+    public void OnCollisionEnter(Collision collision)
+    {
+        if (IsHost)
+        {
+            if (collision.gameObject.CompareTag("Bullet"))
+            {
+                HostHandleBulletCollision(collision.gameObject);
+            }
+        }
+    }
     private void HostHandleBulletCollision(GameObject carBullet)
     {
         BulletScript Bullet = carBullet.GetComponent<BulletScript>();
@@ -132,43 +149,119 @@ public class CarScript : NetworkBehaviour
         otherPlayer.Score.Value += Bullet.Damage.Value;
         Destroy(carBullet);
     }
-    public void DisplayScore()
+    public void DisplayLap()
     {
-        txtScoreDisplay.text = Score.Value.ToString();
+        txtLapDisplay.text = "Lap: " + Lap.Value.ToString();
     }
 
-    private void ClientOnScoreChanged(int previous, int current)
+    private void ClientOnLapChange(int previous, int current)
     {
-        DisplayScore();
+        DisplayLap();
+    }
+    //-------------------------------------------
+    // Speed Boost & PowerUp Things
+    //-------------------------------------------
+
+    private void ServerHandleSpeedPowerUp(GameObject pickupBall)
+    {
+        BonusScript Pickup = pickupBall.GetComponent<BonusScript>();
+        carSpeed.Value += Pickup.increasedSpeed.Value;
+        carTurnSpeed.Value += Pickup.increasedTurnSpeed.Value;
+        ulong ownerClientId = gameObject.GetComponent<NetworkObject>().OwnerClientId;
+        Debug.Log($"Powerup owner: {ownerClientId}");
+        CarScript playerPickedUp = NetworkManager.Singleton.ConnectedClients[
+            ownerClientId].PlayerObject.GetComponent<CarScript>();
+
+        Destroy(pickupBall);
+
+        
+        //playerPickedUp._bulletSpawner.bulletSpeed += Pickup.increasedBulletSpeed.Value;
+        
     }
 
 
-
-    // Speed Boost for PowerUps
     private void OnTriggerEnter(Collider other)
     {
         if (IsServer)
         {
-            if (other.gameObject.tag == "BonusBoost")
+            if (other.gameObject.CompareTag("BonusBoost"))
             {
-                speed += 50f;
-                turnSpeed += 50f;
+                ServerHandleSpeedPowerUp(other.gameObject);
+                serverTimeLeft += serverBonusDuration;
+
+            }
+
+            if (other.gameObject.CompareTag("Checkpoint"))
+            {
+                ulong ownerClientId = gameObject.GetComponent<NetworkObject>().OwnerClientId;
+                CarScript playerhit = NetworkManager.Singleton.ConnectedClients[
+                                        ownerClientId].PlayerObject.GetComponent<CarScript>();
+
+                Debug.Log($"Checkpoint hit by ID: {ownerClientId}");
+                HandleCheckpoints(other.gameObject.GetComponent<CheckpointScript>());
+                Debug.Log("Last Checkpoint value: " + lastCheckpoint);
+
+
             }
         }
     }
 
-    private void HandleSpeedPls()
+    private void DecreaseMySpeed()
     {
-        if (speed > 50f)
+        if (IsServer && serverTimeLeft > 0f)
         {
-            timeStart += Time.deltaTime;
+            serverTimeLeft -= Time.deltaTime;
 
-            if(timeStart >= timeStop)
+            if (serverTimeLeft <= 0f && carSpeed.Value > 80f)
             {
-                speed = 50f;
-                turnSpeed = 175f;
-                timeStart = 0f;
+                carSpeed.Value = 75f;
+                carTurnSpeed.Value = 175f;
+                _bulletSpawner.bulletSpeed = 70f;
+                serverTimeLeft = 0f;
             }
+        }
+    }
+
+    private void DisplaySpeed()
+    {
+        txtSpeedDisplay.text = carSpeed.Value.ToString() + " MPH";
+    }
+
+    private void ClientOnSpeedChange(float previous, float current)
+    {
+        DisplaySpeed();
+    }
+
+    //---------------------
+    // Checkpoint Handling
+    //---------------------
+
+    public void HandleCheckpoints(CheckpointScript checkpoint)
+    {
+        if(checkpoint.name == "CheckpointSingle" && lastCheckpoint == 0)
+        {
+            lastCheckpoint++;
+        }
+        if (checkpoint.name == "CheckpointSingle 2" && lastCheckpoint == 1)
+        {
+            lastCheckpoint++;
+        }
+        if (checkpoint.name == "CheckpointSingle 3" && lastCheckpoint == 2)
+        {
+            lastCheckpoint++;
+        }
+        if (checkpoint.name == "CheckpointSingle 4" && lastCheckpoint == 3)
+        {
+            lastCheckpoint++;
+        }
+        if (checkpoint.name == "CheckpointSingle 5" && lastCheckpoint == 4)
+        {
+            lastCheckpoint++;
+        }
+        if (checkpoint.name == "CheckpointSingle LAST" && lastCheckpoint == 5)
+        {
+            lastCheckpoint = 0;
+            Lap.Value++;
         }
     }
 
@@ -178,7 +271,7 @@ public class CarScript : NetworkBehaviour
 
     private static Color[] availColors = new Color[] {
             Color.black, Color.blue, Color.cyan,
-            Color.gray, Color.green, Color.yellow };
+            Color.gray, Color.green, Color.yellow, Color.red, Color.magenta, Color.white, Color.clear };
     private int hostColorIndex = 0;
     public NetworkVariable<Color> netPlayerColor = new NetworkVariable<Color>();
 
@@ -208,7 +301,7 @@ public class CarScript : NetworkBehaviour
         }
     }
 
-
+    //---------------------------------------------------------
 
     //------------------
     // RPC
@@ -240,5 +333,6 @@ public class CarScript : NetworkBehaviour
         Debug.Log($"host color index = {hostColorIndex} for {serverRpcParams.Receive.SenderClientId}");
         netPlayerColor.Value = availColors[hostColorIndex];
     }
+
 
 }

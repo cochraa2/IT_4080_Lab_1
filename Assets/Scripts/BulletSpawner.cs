@@ -6,7 +6,7 @@ using Unity.Netcode;
 public class BulletSpawner : NetworkBehaviour
 {
     public Rigidbody bulletPrefab;
-    private float bulletSpeed = 70f;
+    public float bulletSpeed = 70f;
     private float timeToLive = 3f;
 
     [ServerRpc]
