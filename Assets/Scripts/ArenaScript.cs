@@ -6,6 +6,7 @@ using Unity.Netcode;
 public class ArenaScript : NetworkBehaviour
 {
     public CarScript carPrefab;
+    private List<Transform> carTransforms = new List<Transform>();
 
     public override void OnNetworkSpawn()
     {
@@ -39,5 +40,21 @@ public class ArenaScript : NetworkBehaviour
         // playerObject for clientId.
         playerSpawn.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId);
         return playerSpawn;
+    }
+
+    private void Start()
+    {
+        foreach(KeyValuePair<ulong, NetworkClient> kvp in NetworkManager.Singleton.ConnectedClients)
+        {
+            // Get the NetworkObject component for the client
+            NetworkObject networkObject = kvp.Value.PlayerObject;
+
+            // Get the Transform component for the client's object
+            Transform clientTransform = networkObject.transform;
+
+            // Add the Transform to our list
+            carTransforms.Add(clientTransform);
+        }
+        Debug.Log("Number of clients: " + carTransforms.Count);
     }
 }

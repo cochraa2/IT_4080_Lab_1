@@ -7,9 +7,18 @@ public class TrackCheckpoints : NetworkBehaviour
 {
     private List<CheckpointScript> checkpointSingleList;
     private int nextCheckpointIndex;
+    private List<int> nextCheckpointIndexList;
+    private List<Transform> carTransforms = new List<Transform>();
+
+    public override void OnNetworkSpawn()
+    {
+        base.OnNetworkSpawn();
+        
+    }
 
     public void Awake()
     {
+        NetworkManager networkManager = NetworkManager.Singleton;
 
         //Locate and name the checkpoints on the track
 
