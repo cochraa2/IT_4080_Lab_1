@@ -386,6 +386,7 @@ GameObject:
   - component: {fileID: 6573238964211523068}
   - component: {fileID: 6573238964212325848}
   - component: {fileID: 6573238964213292824}
+  - component: {fileID: 5900844748926945877}
   m_Layer: 0
   m_Name: ModularTrackCurveSmall
   m_TagString: Untagged
@@ -465,6 +466,19 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!65 &5900844748926945877
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6573238964211286492}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 10.999532, y: 0.6200609, z: 10.999531}
+  m_Center: {x: -0.49976578, y: 0.06002891, z: 0.49976504}
 --- !u!1 &7050084136607970803
 GameObject:
   m_ObjectHideFlags: 0

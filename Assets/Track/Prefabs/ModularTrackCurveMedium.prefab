@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 43436360973422221}
   - component: {fileID: 43436360974552141}
   - component: {fileID: 2870482267020685561}
+  - component: {fileID: 1780508872131714925}
   m_Layer: 0
   m_Name: ModularTrackCurveMedium
   m_TagString: Untagged
@@ -116,6 +117,19 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 3735169553628255807, guid: 92364c9b878b04566a5fdfde313ccfae, type: 3}
+--- !u!65 &1780508872131714925
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 43436360972620429}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 14.999999, y: 0.5274905, z: 15}
+  m_Center: {x: -2.5000007, y: 0.013741955, z: 7.5}
 --- !u!1 &43436360972620431
 GameObject:
   m_ObjectHideFlags: 0

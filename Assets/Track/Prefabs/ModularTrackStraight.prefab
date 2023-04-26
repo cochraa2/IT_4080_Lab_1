@@ -191,6 +191,7 @@ GameObject:
   - component: {fileID: 1579282987822796750}
   - component: {fileID: 1579282987819372526}
   - component: {fileID: 1579282987820502318}
+  - component: {fileID: 5718139077001571057}
   m_Layer: 0
   m_Name: ModularTrackStraight
   m_TagString: Untagged
@@ -266,6 +267,19 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!65 &5718139077001571057
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1579282987822437358}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 10.000002, y: 0.59524554, z: 10}
+  m_Center: {x: -0.00000038146973, y: 0.04762286, z: 5}
 --- !u!1 &2829798550333400826
 GameObject:
   m_ObjectHideFlags: 0

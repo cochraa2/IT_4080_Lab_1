@@ -3,25 +3,42 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
 
-public class TrackCheckpoints : MonoBehaviour
+public class TrackCheckpoints : NetworkBehaviour
 {
-    private CheckpointScript singleCheckpoint;
+    private List<CheckpointScript> checkpointSingleList;
+    private int nextCheckpointIndex;
 
-    //public void Awake()
-    //{
-    //    Transform checkpointGroupTransform = transform.Find(tag = "CheckpointGroup");
-    //    //Transform checkpointSingleTransform = transform.Find(tag = "Checkpoint");
+    public void Awake()
+    {
+        Transform checkpointGroupTransform = transform.Find("CheckpointGroup");
 
-    //    foreach(Transform checkpointChildren in checkpointGroupTransform)
-    //    {
-    //        CheckpointScript checkpoint = checkpointChildren.GetComponent<CheckpointScript>();
-    //        Debug.Log($"Checkpoint found:{checkpointChildren} ");
-    //    }
-    //}
+        checkpointSingleList = new List<CheckpointScript>();
 
-    //public void PlayerThroughCheckpoint(CheckpointScript checkpoint)
-    //{
-    //    Debug.Log(checkpoint.transform.name);
-    //}
+        foreach (Transform checkpointChildren in checkpointGroupTransform)
+        {
+            CheckpointScript checkpointSingle = checkpointChildren.GetComponent<CheckpointScript>();
+            checkpointSingle.SetTrackCheckpoints(this);
+
+            checkpointSingleList.Add(checkpointSingle);
+        }
+
+        nextCheckpointIndex = 0;
+    }
+
+    public void PlayerThroughCheckpoint(CheckpointScript checkpoint)
+    {
+        Debug.Log(checkpoint.transform.name);
+        if (checkpointSingleList.IndexOf(checkpoint) == nextCheckpointIndex)
+        {
+            //Correct Checkpoint
+            Debug.Log("Correct");
+            nextCheckpointIndex = (nextCheckpointIndex + 1) % checkpointSingleList.Count;
+        }
+        else
+        {
+            //Wrong Checkpoint
+            Debug.Log("WRONG EEEEHHHHHHHH");
+        }
+    }
 
 }

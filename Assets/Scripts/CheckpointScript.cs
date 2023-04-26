@@ -12,15 +12,14 @@ public class CheckpointScript : NetworkBehaviour
 
         if (other.gameObject.CompareTag("DaCar"))
         {
-            //NetworkObject netObject = GetComponent<NetworkObject>();
-            //NetworkObject.NetworkHide(netObject);
+            trackCheckpoints.PlayerThroughCheckpoint(this);
         }
         
     }
 
 
-    public void SetTrackCheckpoints(TrackCheckpoints theCheckpoints)
+    public void SetTrackCheckpoints(TrackCheckpoints trackCheckpoints)
     {
-        this.trackCheckpoints = theCheckpoints;
+        this.trackCheckpoints = trackCheckpoints;
     }
 }

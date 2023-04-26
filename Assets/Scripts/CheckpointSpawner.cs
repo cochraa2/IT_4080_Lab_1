@@ -15,8 +15,8 @@ public class CheckpointSpawner : NetworkBehaviour
     private GameObject instantiatedCheckpoint;
     public Rigidbody checkRigid;
 
-    private float spawnDelay = 2f;
-    private float timeAfterDestroyed = 0f;
+    //private float spawnDelay = 2f;
+    //private float timeAfterDestroyed = 0f;
 
     private BonusScript _bonusBoost;
 

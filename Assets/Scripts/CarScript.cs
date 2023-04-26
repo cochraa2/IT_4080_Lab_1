@@ -188,9 +188,9 @@ public class CarScript : NetworkBehaviour
                 ulong ownerClientId = gameObject.GetComponent<NetworkObject>().OwnerClientId;
                 CarScript playerhit = NetworkManager.Singleton.ConnectedClients[
                                         ownerClientId].PlayerObject.GetComponent<CarScript>();
-                NetworkObject netObject = other.GetComponent<NetworkObject>();
+                //NetworkObject netObject = other.GetComponent<NetworkObject>();
 
-                netObject.NetworkHide(ownerClientId);
+               // netObject.NetworkHide(ownerClientId);
 
                 Debug.Log($"Checkpoint hit by ID: {ownerClientId}");
             }
