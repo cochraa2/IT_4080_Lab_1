@@ -3254,7 +3254,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b4830c5009cb049e8b993392624c4cf1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  carPrefab: {fileID: 8140993915340442095, guid: fd53c663e9f3c4d54b42bec2e3833e83, type: 3}
+  carPrefab: {fileID: 5081557271521369539, guid: fd53c663e9f3c4d54b42bec2e3833e83, type: 3}
+  checkpointsHit:
+    m_InternalValue: 0
+  nextCheckpointNetworked:
+    m_InternalValue: 0
 --- !u!1001 &1731132528
 PrefabInstance:
   m_ObjectHideFlags: 0

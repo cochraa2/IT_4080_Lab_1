@@ -6,8 +6,8 @@ using Unity.Netcode;
 public class BonusScript : NetworkBehaviour
 {
 
-    public NetworkVariable<float> increasedSpeed = new NetworkVariable<float>(55);
-    public NetworkVariable<float> increasedTurnSpeed = new NetworkVariable<float>(175);
+    public NetworkVariable<float> increasedSpeed = new NetworkVariable<float>(45);
+    public NetworkVariable<float> increasedTurnSpeed = new NetworkVariable<float>(150);
     public NetworkVariable<float> increasedBulletSpeed = new NetworkVariable<float>(70);
 
    

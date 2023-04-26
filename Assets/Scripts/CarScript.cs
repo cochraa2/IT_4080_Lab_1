@@ -9,9 +9,12 @@ public class CarScript : NetworkBehaviour
     public NetworkVariable<Vector3> RotationChange = new NetworkVariable<Vector3>();
     public NetworkVariable<Color> VehicleColor = new NetworkVariable<Color>();
     public NetworkVariable<int> Score = new NetworkVariable<int>();
+    public NetworkVariable<int> Lap = new NetworkVariable<int>();
 
-    public NetworkVariable<float> carSpeed = new NetworkVariable<float>(50);
+    public NetworkVariable<float> carSpeed = new NetworkVariable<float>(75);
     public NetworkVariable<float> carTurnSpeed = new NetworkVariable<float>(175);
+
+    private int lastCheckpoint;
 
 
     //private float speed = 50f;
@@ -20,7 +23,8 @@ public class CarScript : NetworkBehaviour
     private float serverTimeLeft = 0f;
     private float serverBonusDuration = 3f;
 
-    public TMPro.TMP_Text txtScoreDisplay;
+    public TMPro.TMP_Text txtLapDisplay;
+    public TMPro.TMP_Text txtSpeedDisplay;
 
 
     private float horizontalInput;
@@ -30,7 +34,6 @@ public class CarScript : NetworkBehaviour
     private BulletSpawner _bulletSpawner;
     private PowerUpScript _bonusBoost;
     private BonusScript bonusTings;
-    private CheckpointSpawner _checkpointSpawner;
 
 
     public override void OnNetworkSpawn()
@@ -38,7 +41,8 @@ public class CarScript : NetworkBehaviour
         base.OnNetworkSpawn();
         _camera = transform.Find("Camera").GetComponent<Camera>();
         _camera.enabled = IsOwner;
-        Score.OnValueChanged += ClientOnScoreChanged;
+        Lap.OnValueChanged += ClientOnLapChange;
+        carSpeed.OnValueChanged += ClientOnSpeedChange;
 
         _bulletSpawner = transform
             .Find("BarrelTip")
@@ -46,7 +50,8 @@ public class CarScript : NetworkBehaviour
             .GetComponent<BulletSpawner>();
      
         netPlayerColor.OnValueChanged += OnPlayerColorChanged;
-        DisplayScore();
+        DisplayLap();
+        DisplaySpeed();
     }
 
 
@@ -141,14 +146,14 @@ public class CarScript : NetworkBehaviour
         otherPlayer.Score.Value += Bullet.Damage.Value;
         Destroy(carBullet);
     }
-    public void DisplayScore()
+    public void DisplayLap()
     {
-        txtScoreDisplay.text = Score.Value.ToString();
+        txtLapDisplay.text = "Lap: " + Lap.Value.ToString();
     }
 
-    private void ClientOnScoreChanged(int previous, int current)
+    private void ClientOnLapChange(int previous, int current)
     {
-        DisplayScore();
+        DisplayLap();
     }
     //-------------------------------------------
     // Speed Boost & PowerUp Things
@@ -157,6 +162,8 @@ public class CarScript : NetworkBehaviour
     private void ServerHandleSpeedPowerUp(GameObject pickupBall)
     {
         BonusScript Pickup = pickupBall.GetComponent<BonusScript>();
+        carSpeed.Value += Pickup.increasedSpeed.Value;
+        carTurnSpeed.Value += Pickup.increasedTurnSpeed.Value;
         ulong ownerClientId = gameObject.GetComponent<NetworkObject>().OwnerClientId;
         Debug.Log($"Powerup owner: {ownerClientId}");
         CarScript playerPickedUp = NetworkManager.Singleton.ConnectedClients[
@@ -164,10 +171,8 @@ public class CarScript : NetworkBehaviour
 
         Destroy(pickupBall);
 
-        playerPickedUp.carSpeed.Value += Pickup.increasedSpeed.Value;
-        playerPickedUp.carTurnSpeed.Value += Pickup.increasedTurnSpeed.Value;
-        playerPickedUp._bulletSpawner.bulletSpeed += Pickup.increasedBulletSpeed.Value;
-   
+        
+        //playerPickedUp._bulletSpawner.bulletSpeed += Pickup.increasedBulletSpeed.Value;
         
     }
 
@@ -188,35 +193,74 @@ public class CarScript : NetworkBehaviour
                 ulong ownerClientId = gameObject.GetComponent<NetworkObject>().OwnerClientId;
                 CarScript playerhit = NetworkManager.Singleton.ConnectedClients[
                                         ownerClientId].PlayerObject.GetComponent<CarScript>();
-                //NetworkObject netObject = other.GetComponent<NetworkObject>();
-
-               // netObject.NetworkHide(ownerClientId);
 
                 Debug.Log($"Checkpoint hit by ID: {ownerClientId}");
+                HandleCheckpoints(other.gameObject.GetComponent<CheckpointScript>());
+                Debug.Log("Last Checkpoint value: " + lastCheckpoint);
+
+
             }
         }
     }
 
     private void DecreaseMySpeed()
-    { 
+    {
         if (IsServer && serverTimeLeft > 0f)
         {
             serverTimeLeft -= Time.deltaTime;
 
-            if (serverTimeLeft <= 0f && carSpeed.Value > 55f)
+            if (serverTimeLeft <= 0f && carSpeed.Value > 50f)
             {
-                carSpeed.Value -= bonusTings.increasedSpeed.Value;
-                carTurnSpeed.Value -= bonusTings.increasedTurnSpeed.Value;
-                _bulletSpawner.bulletSpeed -= bonusTings.increasedBulletSpeed.Value;
+                carSpeed.Value = 75f;
+                carTurnSpeed.Value = 175;
+                _bulletSpawner.bulletSpeed = 70f;
                 serverTimeLeft = 0f;
             }
         }
+    }
+
+    private void DisplaySpeed()
+    {
+        txtSpeedDisplay.text = carSpeed.Value.ToString() + " MPH";
+    }
+
+    private void ClientOnSpeedChange(float previous, float current)
+    {
+        DisplaySpeed();
     }
 
     //---------------------
     // Checkpoint Handling
     //---------------------
 
+    public void HandleCheckpoints(CheckpointScript checkpoint)
+    {
+        if(checkpoint.name == "CheckpointSingle" && lastCheckpoint == 0)
+        {
+            lastCheckpoint++;
+        }
+        if (checkpoint.name == "CheckpointSingle 2" && lastCheckpoint == 1)
+        {
+            lastCheckpoint++;
+        }
+        if (checkpoint.name == "CheckpointSingle 3" && lastCheckpoint == 2)
+        {
+            lastCheckpoint++;
+        }
+        if (checkpoint.name == "CheckpointSingle 4" && lastCheckpoint == 3)
+        {
+            lastCheckpoint++;
+        }
+        if (checkpoint.name == "CheckpointSingle 5" && lastCheckpoint == 4)
+        {
+            lastCheckpoint++;
+        }
+        if (checkpoint.name == "CheckpointSingle LAST" && lastCheckpoint == 5)
+        {
+            lastCheckpoint = 0;
+            Lap.Value++;
+        }
+    }
 
     //------------------
     // Color Things

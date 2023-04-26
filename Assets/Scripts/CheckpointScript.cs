@@ -7,19 +7,31 @@ public class CheckpointScript : MonoBehaviour
 {
     private ArenaScript trackCheckpoints;
 
+        //public int checkpointCount;
+        //private int lapCount = 1;
+
+
+
     private void OnTriggerEnter(Collider other)
     {
 
         if (other.gameObject.CompareTag("DaCar"))
         {
-            trackCheckpoints.PlayerThroughCheckpoint(this, other.gameObject.transform);
+            //trackCheckpoints.PlayerThroughCheckpoint(this, other.gameObject.transform);
         }
         
     }
 
-    public void SetTrackCheckpoints(ArenaScript trackCheckpoints)
+    private void Update()
     {
-        this.trackCheckpoints = trackCheckpoints;
+        
     }
 
+    //public void SetTrackCheckpoints(ArenaScript trackCheckpoints)
+    //{
+    //    this.trackCheckpoints = trackCheckpoints;
+    //}
+
+
+  
 }
