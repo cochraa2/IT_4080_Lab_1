@@ -10,6 +10,9 @@ public class TrackCheckpoints : NetworkBehaviour
 
     public void Awake()
     {
+
+        //Locate and name the checkpoints on the track
+
         Transform checkpointGroupTransform = transform.Find("CheckpointGroup");
 
         checkpointSingleList = new List<CheckpointScript>();
