@@ -3,23 +3,23 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
 
-public class CheckpointScript : NetworkBehaviour
+public class CheckpointScript : MonoBehaviour
 {
-    private TrackCheckpoints trackCheckpoints;
+    private ArenaScript trackCheckpoints;
 
     private void OnTriggerEnter(Collider other)
     {
 
         if (other.gameObject.CompareTag("DaCar"))
         {
-            trackCheckpoints.PlayerThroughCheckpoint(this);
+            trackCheckpoints.PlayerThroughCheckpoint(this, other.gameObject.transform);
         }
         
     }
 
-
-    public void SetTrackCheckpoints(TrackCheckpoints trackCheckpoints)
+    public void SetTrackCheckpoints(ArenaScript trackCheckpoints)
     {
         this.trackCheckpoints = trackCheckpoints;
     }
+
 }

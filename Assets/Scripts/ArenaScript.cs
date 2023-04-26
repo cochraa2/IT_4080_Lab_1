@@ -6,7 +6,12 @@ using Unity.Netcode;
 public class ArenaScript : NetworkBehaviour
 {
     public CarScript carPrefab;
-    private List<Transform> carTransforms = new List<Transform>();
+    private List<Transform> carTransformList = new List<Transform>();
+    private List<CheckpointScript> checkpointSingleList;
+   // private int nextCheckpointIndex;
+    private List<int> nextCheckpointIndexList;
+
+    public NetworkVariable<int> nextCheckpointNetworked = new NetworkVariable<int>();
 
     public override void OnNetworkSpawn()
     {
@@ -15,7 +20,28 @@ public class ArenaScript : NetworkBehaviour
         if (IsServer)
         {
             SpawnAllPlayers();
+            GetTheClientsServerRpc();
         }
+
+        Transform checkpointGroupTransform = transform.Find("CheckpointGroup");
+
+        checkpointSingleList = new List<CheckpointScript>();
+
+        foreach (Transform checkpointChildren in checkpointGroupTransform)
+        {
+            CheckpointScript checkpointSingle = checkpointChildren.GetComponent<CheckpointScript>();
+            checkpointSingle.SetTrackCheckpoints(this);
+
+            checkpointSingleList.Add(checkpointSingle);
+        }
+
+        nextCheckpointIndexList = new List<int>();
+        foreach (Transform carTransform in carTransformList)
+        {
+            nextCheckpointIndexList.Add(0);
+        }
+
+        nextCheckpointNetworked.Value = 0;
     }
 
     private void SpawnAllPlayers()
@@ -44,17 +70,49 @@ public class ArenaScript : NetworkBehaviour
 
     private void Start()
     {
-        foreach(KeyValuePair<ulong, NetworkClient> kvp in NetworkManager.Singleton.ConnectedClients)
+        // Locate and name the checkpoints on the track
+
+        
+
+    }
+
+    public void PlayerThroughCheckpoint(CheckpointScript checkpoint, Transform theTransform)
+    {
+        
+        nextCheckpointNetworked.Value = nextCheckpointIndexList[carTransformList.IndexOf(theTransform)];
+        if (checkpointSingleList.IndexOf(checkpoint) == nextCheckpointNetworked.Value)
         {
-            // Get the NetworkObject component for the client
-            NetworkObject networkObject = kvp.Value.PlayerObject;
-
-            // Get the Transform component for the client's object
-            Transform clientTransform = networkObject.transform;
-
-            // Add the Transform to our list
-            carTransforms.Add(clientTransform);
+            //Correct Checkpoint
+            Debug.Log("Correct");
+            nextCheckpointIndexList[carTransformList.IndexOf(theTransform)]
+                = (nextCheckpointNetworked.Value + 1) % checkpointSingleList.Count;
         }
-        Debug.Log("Number of clients: " + carTransforms.Count);
+        else
+        {
+            //Wrong Checkpoint
+            Debug.Log("WRONG EEEEHHHHHHHH");
+        }
+    }
+
+    [ServerRpc]
+    public void GetTheClientsServerRpc()
+    {
+
+        if (!IsServer && !IsHost)
+        {
+            return;
+        }
+        foreach (KeyValuePair<ulong, NetworkClient> kvp in NetworkManager.Singleton.ConnectedClients)
+            {
+                // Get the NetworkObject component for the client
+                NetworkObject networkObject = kvp.Value.PlayerObject;
+
+                // Get the Transform component for the client's object
+                Transform clientTransform = networkObject.transform;
+
+                // Add the Transform to the list
+                carTransformList.Add(clientTransform);
+            }
+
     }
 }
