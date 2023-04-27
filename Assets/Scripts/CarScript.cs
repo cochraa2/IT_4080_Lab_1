@@ -21,7 +21,7 @@ public class CarScript : NetworkBehaviour
     private float serverTimeLeftHalt = 0f;
     private float serverHaltDuration = 2f;
 
-    private bool hasSpeedBoost = false;
+    public bool hasSpeedBoost = false;
     private bool hasHalt = false;
 
     public TMPro.TMP_Text txtLapDisplay;
@@ -69,30 +69,22 @@ public class CarScript : NetworkBehaviour
         ClickToChangeColor();
         ShootBullets();  
 
+        UseBoost();
+
+        startCountdownServerRpc();
+
+        DecreaseMySpeedServerRpc();
+
         if (serverTimeLeftHalt > 0)
         {
             Debug.Log(serverTimeLeftHalt);
         }
 
-        UseBoost();
 
-        startCountdownServerRpc();
-
-        if (IsServer)
-        {
-            if(carSpeed.Value > 75f)
-            {
-                DecreaseMySpeedServerRpc();
-            }
-        }
-
-        if(serverTimeLeftSpeed > 0)
+        if (serverTimeLeftSpeed > 0)
         {
             Debug.Log(serverTimeLeftSpeed);
         }
-        
-        
-
     }
 
     private void FixedUpdate()
@@ -145,6 +137,7 @@ public class CarScript : NetworkBehaviour
         {
             if (Input.GetKeyDown(KeyCode.B) && hasSpeedBoost)
             {
+                Debug.Log("You just hit the B Key!");
                 carSpeed.Value += 45;
                 carTurnSpeed.Value += 150;
                 requestToAddTimerServerRpc();
@@ -244,8 +237,8 @@ public class CarScript : NetworkBehaviour
         if (IsServer)
         {
             if (other.gameObject.CompareTag("BonusBoost"))
-            { 
-                hasSpeedBoost = true;
+            {
+                HostHandleSpeedBoost(other.gameObject);
             }
 
             if (other.gameObject.CompareTag("Checkpoint"))
@@ -258,6 +251,12 @@ public class CarScript : NetworkBehaviour
                 hasHalt = true;
             }
         }
+    }
+
+    private void HostHandleSpeedBoost(GameObject pickupBall)
+    {
+        BonusScript Pickup = pickupBall.GetComponent<BonusScript>();
+        hasSpeedBoost = true;
     }
 
     private void DecreaseMySpeed()
@@ -329,14 +328,11 @@ public class CarScript : NetworkBehaviour
 
     public void HostHandleWrongCheckpoint()
     { 
-
         Vector3 respawnWorldLoc = new Vector3();
         Vector3 respawnLocalLoc = new Vector3(0, 0, 0);
 
         Vector3 respawnRotation = new Vector3();
         float respawnY;
-
-        
 
         int n = passedCheckpoints.Count;
         var item = passedCheckpoints[n - 1];
@@ -432,6 +428,8 @@ public class CarScript : NetworkBehaviour
         netPlayerColor.Value = availColors[hostColorIndex];
     }
 
+
+
     [ServerRpc]
     void requestToAddTimerServerRpc(ServerRpcParams serverRpcParams = default)
     {
@@ -453,7 +451,7 @@ public class CarScript : NetworkBehaviour
     [ServerRpc]
     void DecreaseMySpeedServerRpc()
     {
-        if (serverTimeLeftSpeed <= 0 && carSpeed.Value > 75f)
+        if (serverTimeLeftSpeed <= 0f && carSpeed.Value >= 120f)
         {
             carSpeed.Value = 75f;
             carTurnSpeed.Value = 175f;

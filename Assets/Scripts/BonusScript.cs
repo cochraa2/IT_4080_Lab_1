@@ -14,6 +14,9 @@ public class BonusScript : NetworkBehaviour
     {
         if (other.gameObject.CompareTag("DaCar"))
         {
+            CarScript collisionCar = other.GetComponent<CarScript>();
+            collisionCar.hasSpeedBoost = true;
+            
             Destroy(gameObject);
         }
     }
