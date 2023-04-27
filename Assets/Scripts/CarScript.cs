@@ -13,16 +13,15 @@ public class CarScript : NetworkBehaviour
     public NetworkVariable<float> carSpeed = new NetworkVariable<float>(75f);
     public NetworkVariable<float> carTurnSpeed = new NetworkVariable<float>(175f);
     public NetworkVariable<bool> hasSpeedBoost = new NetworkVariable<bool>(false);
+    public NetworkVariable<bool> hasHaltBonus = new NetworkVariable<bool>(false);
 
     public List<CheckpointScript> passedCheckpoints = new List<CheckpointScript>();
 
     private float serverTimeLeftSpeed = 0f;
     private float serverSpeedDuration = 3f;
 
-    private float serverTimeLeftHalt = 0f;
-    private float serverHaltDuration = 2f;
+    private float serverTimeLeftHalt = 3f;
 
-    private bool hasHalt = false;
 
     public TMPro.TMP_Text txtLapDisplay;
     public TMPro.TMP_Text txtSpeedDisplay;
@@ -35,6 +34,7 @@ public class CarScript : NetworkBehaviour
     private BulletSpawner _bulletSpawner;
     private PowerUpScript _bonusBoost;
     private BonusScript bonusTings;
+    private HaltScript haltScript;
 
 
     public override void OnNetworkSpawn()
@@ -70,18 +70,23 @@ public class CarScript : NetworkBehaviour
         ShootBullets();  
 
         UseBoost();
+        //StartHaltTimerServerRpc();
 
+        if (hasHaltBonus.Value)
+        {
+            Debug.Log("Halt bonus is true!");
+        }
 
-        if (serverTimeLeftHalt > 0)
+        if(serverTimeLeftHalt < 3)
         {
             Debug.Log(serverTimeLeftHalt);
         }
 
-
-        if (serverTimeLeftSpeed > 0)
+        if (carSpeed.Value <= 0 || hasHaltBonus.Value)
         {
-            Debug.Log(serverTimeLeftSpeed);
+            StartHaltTimerServerRpc();
         }
+
     }
 
     private void FixedUpdate()
@@ -99,6 +104,7 @@ public class CarScript : NetworkBehaviour
             requestPositionToMoveServerRpc(goForward, turnCar);
 
             DecreaseSpeedServerRpc();
+            UnHaltPlayersServerRpc();
 
         }
 
@@ -151,19 +157,6 @@ public class CarScript : NetworkBehaviour
         }
     }
 
-    private void UseHalt()
-    {
-        if (IsOwner)
-        {
-            if(Input.GetKeyDown(KeyCode.H) && hasHalt)
-            {
-
-            }
-        }
-    }
-
-
-
     // ------------
     // Score stuff
     // ------------
@@ -189,17 +182,6 @@ public class CarScript : NetworkBehaviour
         Destroy(carBullet);
     }
 
-    private void ServerHandleHalt(GameObject haltPickup)
-    {
-        //HaltScript Pickup = haltPickup.GetComponent<HaltScript>();
-        //hasHalt = Pickup.isPickedUp.Value;
-        //ulong ownerClientId = gameObject.GetComponent<NetworkObject>().OwnerClientId;
-        //if(CarScript thisPlayer = NetworkManager.Singleton.ConnectedClients[ownerClientId].PlayerObject.GetComponent<CarScript>())
-
-        //Destroy(haltPickup);
-
-    }
-
     public void DisplayLap()
     {
         txtLapDisplay.text = "Lap: " + Lap.Value.ToString();
@@ -209,12 +191,11 @@ public class CarScript : NetworkBehaviour
     {
         DisplayLap();
     }
+
+
     //-------------------------------------------
     // Speed Boost & PowerUp Things
     //-------------------------------------------
-
-   
-
 
     private void OnTriggerEnter(Collider other)
     {
@@ -233,7 +214,8 @@ public class CarScript : NetworkBehaviour
 
             if (other.gameObject.CompareTag("HaltBonus"))
             {
-                hasHalt = true;
+                HostHandleHaltBonus(other.gameObject);
+                StartHaltTimerServerRpc();
             }
         }
     }
@@ -249,8 +231,6 @@ public class CarScript : NetworkBehaviour
 
         Destroy(pickupBall);
     }
-
-
 
     private void DecreaseMySpeed()
     {
@@ -268,14 +248,21 @@ public class CarScript : NetworkBehaviour
     private void ClientOnSpeedChange(float previous, float current)
     {
         DisplaySpeed();
-
     }
 
     //---------------------
     // HALT BONUS
     //---------------------
 
-    
+    private void HostHandleHaltBonus(GameObject haltPickup)
+    {
+        HaltScript Pickup = haltPickup.GetComponent<HaltScript>();
+        hasHaltBonus.Value = Pickup.isHaltPickedUp.Value;
+        ulong ownerClientId = gameObject.GetComponent<NetworkObject>().OwnerClientId;
+        Debug.Log($"Powerup owner: {ownerClientId}");
+        CarScript playerPickedUp = NetworkManager.Singleton.ConnectedClients[
+            ownerClientId].PlayerObject.GetComponent<CarScript>();
+    }
 
 
     //---------------------
@@ -305,8 +292,6 @@ public class CarScript : NetworkBehaviour
 
             Debug.Log("Wrong checkpoint bruh");
         }
-        
-        
     }
 
     public void HostHandleWrongCheckpoint()
@@ -380,9 +365,8 @@ public class CarScript : NetworkBehaviour
 
     //---------------------------------------------------------
 
-    //------------------
-    // RPC
-    //------------------
+
+    // Color RPCs ----------------------------
 
     [ServerRpc]
 
@@ -411,6 +395,7 @@ public class CarScript : NetworkBehaviour
         netPlayerColor.Value = availColors[hostColorIndex];
     }
 
+    // Speed RPCs ----------------------------
 
     [ServerRpc(RequireOwnership = false)]
     public void GiveSpeedServerRpc(ServerRpcParams serverRpcParams = default)
@@ -419,18 +404,15 @@ public class CarScript : NetworkBehaviour
         if (NetworkManager.ConnectedClients.ContainsKey(clientId))
         {
             var client = NetworkManager.ConnectedClients[clientId];
+
             // Do things for this client
-            serverTimeLeftSpeed += serverSpeedDuration;
-            
-            //if (serverTimeLeftSpeed <= 0f && carSpeed.Value >= 120f)
-            //{
             var clientObj = client.PlayerObject.GetComponent<CarScript>();
             clientObj.serverTimeLeftSpeed += clientObj.serverSpeedDuration;
-            clientObj.carSpeed.Value += 75f;
+            clientObj.carSpeed.Value += 45f;
             clientObj.carTurnSpeed.Value += 150f;
                 
             clientObj.hasSpeedBoost.Value = false;
-           // }
+           
         }
     }
 
@@ -441,13 +423,47 @@ public class CarScript : NetworkBehaviour
         {
             serverTimeLeftSpeed -= Time.deltaTime;
         }
-        if (serverTimeLeftSpeed <= 0f && carSpeed.Value >= 120f)
+        if (serverTimeLeftSpeed <= 0f && carSpeed.Value >= 110f)
         {
             carSpeed.Value = 75f;
             carTurnSpeed.Value = 150f;
             
             serverTimeLeftSpeed = 0f;
         }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void StartHaltTimerServerRpc(ServerRpcParams serverRpcParams = default)
+    {
+        var clientId = serverRpcParams.Receive.SenderClientId;
+        if (NetworkManager.ConnectedClients.ContainsKey(clientId))
+        {
+            var client = NetworkManager.ConnectedClients[clientId];
+
+            // Do things for this client
+            var clientObj = client.PlayerObject.GetComponent<CarScript>();
+            clientObj.serverTimeLeftHalt -= Time.deltaTime;
+        }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    void UnHaltPlayersServerRpc()
+    {
+        if (serverTimeLeftHalt <= 0f && (carSpeed.Value <= 0f))
+        {
+            Debug.Log("The timer is up!");
+            carSpeed.Value = 75f;
+            carTurnSpeed.Value = 150f;
+
+            serverTimeLeftHalt = 3f;
+        }
+        if(serverTimeLeftHalt <= 0 && hasHaltBonus.Value)
+        {
+            Debug.Log("The timer is up, players now have their speed back");
+            hasHaltBonus.Value = false;
+            serverTimeLeftHalt = 3f;
+        }
+        
     }
 
 }

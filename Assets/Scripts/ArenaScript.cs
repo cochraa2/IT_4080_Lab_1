@@ -30,16 +30,8 @@ public class ArenaScript : NetworkBehaviour
         if (IsServer)
         {
             serverTimer.Value -= Time.deltaTime;
-            //UpdateTimerClientRpc(serverTimer.Value);
         }
     }
-
-    //[ClientRpc]
-    //void UpdateTimerClientRpc(float value)
-    //{
-    //    serverTimer.Value = value;
-    //}
-
     private void SpawnAllPlayers()
     {
         foreach (ulong clientId in NetworkManager.Singleton.ConnectedClientsIds)
