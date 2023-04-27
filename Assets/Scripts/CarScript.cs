@@ -58,6 +58,8 @@ public class CarScript : NetworkBehaviour
 
         carSpeed.Value = 75f;
         carTurnSpeed.Value = 175f;
+
+        correctCheckpoint = true;
     }
 
 
@@ -69,7 +71,6 @@ public class CarScript : NetworkBehaviour
         }
         ClickToChangeColor();
         ShootBullets();
-        FlipYourCar();
 
         DecreaseMySpeed();
         
@@ -106,15 +107,6 @@ public class CarScript : NetworkBehaviour
         forwardInput = Input.GetAxis("Vertical");
     }
 
-    private void FlipYourCar()
-    {
-        if (Input.GetKeyDown(KeyCode.F) && IsOwner)
-        {
-            GetComponent<Transform>().eulerAngles = new Vector3(0, 4, 0);
-
-            transform.Rotate(0, 0, 0);
-        }
-    }
 
     private void ShootBullets()
     {
@@ -249,6 +241,7 @@ public class CarScript : NetworkBehaviour
             Debug.Log("Checkpoints passed: " + passedCheckpoints.Count);
             if (passedCheckpoints.Count >= 6)
             {
+                correctCheckpoint = true;
                 //lastCheckpoint = 0;
                 passedCheckpoints.Clear();
                 //passedCheckpoints.Add(checkpoint.GetComponent<CheckpointScript>());
@@ -258,11 +251,55 @@ public class CarScript : NetworkBehaviour
         }
         else
         {
+            HostHandleWrongCheckpoint();
+
             Debug.Log("Wrong checkpoint bruh");
         }
         
         
     }
+
+    public void HostHandleWrongCheckpoint()
+    {
+        correctCheckpoint = false;
+
+        Vector3 respawnWorldLoc = new Vector3();
+        Vector3 respawnLocalLoc = new Vector3(0, 0, 0);
+
+        Vector3 respawnRotation = new Vector3();
+        float respawnY;
+
+        
+
+        int n = passedCheckpoints.Count;
+        var item = passedCheckpoints[n - 1];
+        respawnWorldLoc = item.GetComponent<CheckpointScript>().gameObject.transform.position;
+        respawnY = item.GetComponent<CheckpointScript>().gameObject.transform.rotation.eulerAngles.y - transform.localEulerAngles.y;
+        respawnRotation.y = respawnY;
+
+        respawnWorldLoc.y -= 25;
+        respawnLocalLoc = transform.InverseTransformPoint(respawnWorldLoc);
+
+        if(item == null)
+        {
+           //respawnLocalLoc = 
+        }
+
+        if (IsOwner)
+        {
+            requestPositionToMoveServerRpc(respawnLocalLoc, respawnRotation);
+        }
+
+        if (!IsOwner || IsHost)
+        {
+            transform.Translate(respawnLocalLoc);
+            transform.Rotate(respawnRotation);
+        }
+
+        Debug.Log(respawnWorldLoc);
+        Debug.Log(respawnLocalLoc);
+    }
+
 
     //------------------
     // Color Things
@@ -315,6 +352,15 @@ public class CarScript : NetworkBehaviour
 
         PositionChange.Value = posChange;
         RotationChange.Value = rotChange;
+    }
+
+    [ServerRpc]
+    void requestRespawnServerRpc(Vector3 newPos)
+    {
+        if(!IsServer && !IsHost)
+            return;
+
+        PositionChange.Value = newPos;
     }
 
     [ServerRpc]

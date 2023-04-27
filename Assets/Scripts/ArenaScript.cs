@@ -49,13 +49,4 @@ public class ArenaScript : NetworkBehaviour
         playerSpawn.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId);
         return playerSpawn;
     }
-
-    //private CarScript RespawnPlayer(ulong clientId)
-    //{
-    //    Vector3 checkpointRespawn = new Vector3();
-    //    if(carPrefab.passedCheckpoints)
-
-
-    //    return;
-    //}
 }
