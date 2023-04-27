@@ -14,10 +14,6 @@ public class CarScript : NetworkBehaviour
     public NetworkVariable<float> carSpeed = new NetworkVariable<float>(75f);
     public NetworkVariable<float> carTurnSpeed = new NetworkVariable<float>(175f);
 
-    public bool correctCheckpoint;
-
-    private ulong myClientId;
-
     public List<CheckpointScript> passedCheckpoints = new List<CheckpointScript>();
 
 //    private int lastCheckpoint;
@@ -61,8 +57,6 @@ public class CarScript : NetworkBehaviour
         netPlayerColor.OnValueChanged += OnPlayerColorChanged;
         DisplayLap();
         DisplaySpeed();
-
-        myClientId = gameObject.GetComponent<NetworkObject>().OwnerClientId;
 
         carSpeed.Value = 75f;
         carTurnSpeed.Value = 175f;
@@ -298,11 +292,10 @@ public class CarScript : NetworkBehaviour
         {
             //lastCheckpoint++;
             passedCheckpoints.Add(checkpoint.GetComponent<CheckpointScript>());
-            correctCheckpoint = true;
+
             Debug.Log("Checkpoints passed: " + passedCheckpoints.Count);
             if (passedCheckpoints.Count >= 10)
             {
-                correctCheckpoint = true;
                 //lastCheckpoint = 0;
                 passedCheckpoints.Clear();
                 //passedCheckpoints.Add(checkpoint.GetComponent<CheckpointScript>());
@@ -321,8 +314,7 @@ public class CarScript : NetworkBehaviour
     }
 
     public void HostHandleWrongCheckpoint()
-    {
-        correctCheckpoint = false;
+    { 
 
         Vector3 respawnWorldLoc = new Vector3();
         Vector3 respawnLocalLoc = new Vector3(0, 0, 0);
