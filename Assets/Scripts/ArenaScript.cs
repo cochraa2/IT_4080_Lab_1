@@ -10,6 +10,8 @@ public class ArenaScript : NetworkBehaviour
     private Vector3 minPosition = new Vector3(-27, 5, -102);
     private Vector3 maxPosition = new Vector3(-50, 5, -130);
 
+    private NetworkVariable<float> serverTimer = new NetworkVariable<float>(0);
+
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
@@ -17,9 +19,25 @@ public class ArenaScript : NetworkBehaviour
         if (IsServer)
         {
             SpawnAllPlayers();
+            serverTimer.Value = 125f;
         }
 
     }
+
+    private void Update()
+    {
+        if (IsServer)
+        {
+            serverTimer.Value -= Time.deltaTime;
+            //UpdateTimerClientRpc(serverTimer.Value);
+        }
+    }
+
+    //[ClientRpc]
+    //void UpdateTimerClientRpc(float value)
+    //{
+    //    serverTimer.Value = value;
+    //}
 
     private void SpawnAllPlayers()
     {

@@ -417,6 +417,8 @@ MonoBehaviour:
     m_InternalValue: 50
   carTurnSpeed:
     m_InternalValue: 175
+  correctCheckpoint: 0
+  passedCheckpoints: []
   txtLapDisplay: {fileID: 3920404304925545108}
   txtSpeedDisplay: {fileID: 6763982420657368589}
   netPlayerColor:
