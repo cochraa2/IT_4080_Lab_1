@@ -10,15 +10,18 @@ public class BonusScript : NetworkBehaviour
     public NetworkVariable<float> increasedTurnSpeed = new NetworkVariable<float>(150);
     public NetworkVariable<float> increasedBulletSpeed = new NetworkVariable<float>(70);
 
+    public NetworkVariable<bool> giveSpeedBoost = new NetworkVariable<bool>(true);
+
     private void OnTriggerEnter(Collider other)
     {
-        if (other.gameObject.CompareTag("DaCar"))
+        if (IsServer)
         {
-            CarScript collisionCar = other.GetComponent<CarScript>();
-            collisionCar.hasSpeedBoost = true;
-            
-            Destroy(gameObject);
+            if (other.gameObject.CompareTag("DaCar"))
+            { 
+                Destroy(gameObject);
+            }
         }
+        
     }
 
 

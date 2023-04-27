@@ -6,6 +6,7 @@ using Unity.Netcode;
 public class ArenaScript : NetworkBehaviour
 {
     public CarScript carPrefab;
+    public NetworkVariable<int> playerCount = new NetworkVariable<int>();
 
     private Vector3 minPosition = new Vector3(-27, 5, -102);
     private Vector3 maxPosition = new Vector3(-50, 5, -130);
@@ -67,4 +68,6 @@ public class ArenaScript : NetworkBehaviour
         playerSpawn.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId);
         return playerSpawn;
     }
+
+
 }

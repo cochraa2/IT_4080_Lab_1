@@ -12,6 +12,7 @@ public class CarScript : NetworkBehaviour
 
     public NetworkVariable<float> carSpeed = new NetworkVariable<float>(75f);
     public NetworkVariable<float> carTurnSpeed = new NetworkVariable<float>(175f);
+    public NetworkVariable<bool> hasSpeedBoost = new NetworkVariable<bool>(false);
 
     public List<CheckpointScript> passedCheckpoints = new List<CheckpointScript>();
 
@@ -21,7 +22,6 @@ public class CarScript : NetworkBehaviour
     private float serverTimeLeftHalt = 0f;
     private float serverHaltDuration = 2f;
 
-    public bool hasSpeedBoost = false;
     private bool hasHalt = false;
 
     public TMPro.TMP_Text txtLapDisplay;
@@ -71,9 +71,6 @@ public class CarScript : NetworkBehaviour
 
         UseBoost();
 
-        startCountdownServerRpc();
-
-        DecreaseMySpeedServerRpc();
 
         if (serverTimeLeftHalt > 0)
         {
@@ -100,6 +97,8 @@ public class CarScript : NetworkBehaviour
             //DecreaseMySpeed();
 
             requestPositionToMoveServerRpc(goForward, turnCar);
+
+            DecreaseSpeedServerRpc();
 
         }
 
@@ -135,14 +134,18 @@ public class CarScript : NetworkBehaviour
     {
         if (IsOwner)
         {
-            if (Input.GetKeyDown(KeyCode.B) && hasSpeedBoost)
+            if (Input.GetKeyDown(KeyCode.B))
             {
-                Debug.Log("You just hit the B Key!");
-                carSpeed.Value += 45;
-                carTurnSpeed.Value += 150;
-                requestToAddTimerServerRpc();
-
-                hasSpeedBoost = false;
+                if (hasSpeedBoost.Value)
+                {
+                    Debug.Log("Speed Boost!");
+                    GiveSpeedServerRpc();
+                    
+                }
+                else
+                {
+                    Debug.Log("You do not have the speed boost");
+                }
 
             }
         }
@@ -191,30 +194,11 @@ public class CarScript : NetworkBehaviour
         //HaltScript Pickup = haltPickup.GetComponent<HaltScript>();
         //hasHalt = Pickup.isPickedUp.Value;
         //ulong ownerClientId = gameObject.GetComponent<NetworkObject>().OwnerClientId;
-
-
-
-
-
-        //        if(CarScript thisPlayer = NetworkManager.Singleton.ConnectedClients[ownerClientId].PlayerObject.GetComponent<CarScript>())
+        //if(CarScript thisPlayer = NetworkManager.Singleton.ConnectedClients[ownerClientId].PlayerObject.GetComponent<CarScript>())
 
         //Destroy(haltPickup);
 
     }
-
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //yeah
-
-
-
-
 
     public void DisplayLap()
     {
@@ -234,6 +218,7 @@ public class CarScript : NetworkBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+
         if (IsServer)
         {
             if (other.gameObject.CompareTag("BonusBoost"))
@@ -256,8 +241,16 @@ public class CarScript : NetworkBehaviour
     private void HostHandleSpeedBoost(GameObject pickupBall)
     {
         BonusScript Pickup = pickupBall.GetComponent<BonusScript>();
-        hasSpeedBoost = true;
+        hasSpeedBoost.Value = Pickup.giveSpeedBoost.Value;
+        ulong ownerClientId = gameObject.GetComponent<NetworkObject>().OwnerClientId;
+        Debug.Log($"Powerup owner: {ownerClientId}");
+        CarScript playerPickedUp = NetworkManager.Singleton.ConnectedClients[
+            ownerClientId].PlayerObject.GetComponent<CarScript>();
+
+        Destroy(pickupBall);
     }
+
+
 
     private void DecreaseMySpeed()
     {
@@ -266,16 +259,6 @@ public class CarScript : NetworkBehaviour
         _bulletSpawner.bulletSpeed = 70f;
         serverTimeLeftSpeed = 0f;
     }
-
-    private void StartSpeedCountdown()
-    {
-        if (serverTimeLeftSpeed > 0f)
-        {
-            serverTimeLeftSpeed -= Time.deltaTime;
-        }
-    }
-
-    
 
     private void DisplaySpeed()
     {
@@ -429,33 +412,40 @@ public class CarScript : NetworkBehaviour
     }
 
 
-
-    [ServerRpc]
-    void requestToAddTimerServerRpc(ServerRpcParams serverRpcParams = default)
+    [ServerRpc(RequireOwnership = false)]
+    public void GiveSpeedServerRpc(ServerRpcParams serverRpcParams = default)
     {
-        if (!IsServer && !IsHost)
-            return;
-
-        serverTimeLeftSpeed += serverSpeedDuration;
-    }
-
-    [ServerRpc]
-    void startCountdownServerRpc()
-    {
-        if (serverTimeLeftSpeed > 0)
+        var clientId = serverRpcParams.Receive.SenderClientId;
+        if (NetworkManager.ConnectedClients.ContainsKey(clientId))
         {
-            serverTimeLeftSpeed -= Time.deltaTime;
+            var client = NetworkManager.ConnectedClients[clientId];
+            // Do things for this client
+            serverTimeLeftSpeed += serverSpeedDuration;
+            
+            //if (serverTimeLeftSpeed <= 0f && carSpeed.Value >= 120f)
+            //{
+            var clientObj = client.PlayerObject.GetComponent<CarScript>();
+            clientObj.serverTimeLeftSpeed += clientObj.serverSpeedDuration;
+            clientObj.carSpeed.Value += 75f;
+            clientObj.carTurnSpeed.Value += 150f;
+                
+            clientObj.hasSpeedBoost.Value = false;
+           // }
         }
     }
 
-    [ServerRpc]
-    void DecreaseMySpeedServerRpc()
+    [ServerRpc(RequireOwnership = false)]
+    void DecreaseSpeedServerRpc()
     {
+        if(serverTimeLeftSpeed > 0)
+        {
+            serverTimeLeftSpeed -= Time.deltaTime;
+        }
         if (serverTimeLeftSpeed <= 0f && carSpeed.Value >= 120f)
         {
             carSpeed.Value = 75f;
-            carTurnSpeed.Value = 175f;
-            _bulletSpawner.bulletSpeed = 70f;
+            carTurnSpeed.Value = 150f;
+            
             serverTimeLeftSpeed = 0f;
         }
     }
