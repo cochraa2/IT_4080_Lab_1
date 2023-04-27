@@ -13,7 +13,7 @@ public class HaltCarSpawner : NetworkBehaviour
     private Transform spawnPointTransform;
     private GameObject instantiatedPowerUp;
 
-    private float spawnDelay = 2f;
+    private float spawnDelay = 10f;
     private float timeAfterDestroyed = 0f;
 
     private HaltScript _bonusBoost;

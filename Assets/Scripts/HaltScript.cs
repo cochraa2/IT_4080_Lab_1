@@ -6,44 +6,12 @@ using Unity.Netcode;
 public class HaltScript : NetworkBehaviour
 {
     public NetworkVariable<bool> isPickedUp = new NetworkVariable<bool>(true);
-    private CarScript theCar;
 
-    private bool isColliding;
-
-    private void Start()
+    public void OnTriggerEnter(Collider other)
     {
-        theCar = GetComponent<CarScript>();
-    }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if (IsLocalPlayer && other.CompareTag("HaltBonus"))
+        if (other.gameObject.CompareTag("DaCar"))
         {
-            isColliding = true;
-            SetSpeeds();
+            Destroy(gameObject);
         }
-    }
-
-    private void SetSpeeds()
-    {
-        if (IsLocalPlayer)
-        {
-            // Player colliding with item, maintain speed
-            if (isColliding)
-            {
-                UpdateTheSpeedsClientRpc(theCar.carSpeed.Value);
-            }
-            // Player not colliding with item, set speed to 0
-            else
-            {
-                UpdateTheSpeedsClientRpc(0f);
-            }
-        }
-    }
-
-    [ClientRpc]
-    void UpdateTheSpeedsClientRpc(float speed)
-    {
-        theCar.carSpeed.Value = speed;
     }
 }

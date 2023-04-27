@@ -12,7 +12,7 @@ public class PowerUpScript : NetworkBehaviour
     private Transform spawnPointTransform;
     private GameObject instantiatedPowerUp;
 
-    private float spawnDelay = 2f;
+    private float spawnDelay = 5f;
     private float timeAfterDestroyed = 0f;
 
     private BonusScript _bonusBoost;
