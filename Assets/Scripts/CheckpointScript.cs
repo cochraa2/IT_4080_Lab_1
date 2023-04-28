@@ -22,7 +22,7 @@ public class CheckpointScript : NetworkBehaviour
             carHit = NetworkManager.Singleton.ConnectedClients[ownerClientId].PlayerObject.GetComponent<CarScript>();
             foreach(ulong clientId in NetworkManager.Singleton.ConnectedClientsIds)
             {
-                if(carHit.Lap.Value > 1)
+                if(carHit.Lap.Value > 2)
                 {
                     Debug.Log("You Win!");
                     standingsList.Add(carHit);
