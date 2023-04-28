@@ -79,10 +79,7 @@ public class CarScript : NetworkBehaviour
 
         if (IsServer)
         {
-            while(isGameDone == false)
-            {
-                ShowServerTimerServerRpc();
-            }
+
             
         }
         UpdateTimerClientRpc(serverTimer.Value);
@@ -513,14 +510,14 @@ public class CarScript : NetworkBehaviour
     [ServerRpc]
     void ShowServerTimerServerRpc()
     {
-        serverTimer.Value -= Time.deltaTime;
+        //serverTimer.Value -= Time.deltaTime;
         //txtTimeDisplay.text = serverTimer.Value.ToString("F2");
     }
 
     [ClientRpc]
     void UpdateTimerClientRpc(float value)
     {
-//        serverTimer.Value = value;
+        serverTimer.Value = value;
     }
 
 }
