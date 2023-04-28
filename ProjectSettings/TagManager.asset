@@ -9,6 +9,7 @@ TagManager:
   - DaCar
   - Checkpoint
   - CheckpointGroup
+  - HaltBonus
   layers:
   - Default
   - TransparentFX

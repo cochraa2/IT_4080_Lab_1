@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
 
-public class PlayerInfo : INetworkSerializable, System.IEquatable<PlayerInfo>
+public struct PlayerInfo : INetworkSerializable, System.IEquatable<PlayerInfo>
 {
     public  ulong clientId;
 
@@ -19,7 +19,7 @@ public class PlayerInfo : INetworkSerializable, System.IEquatable<PlayerInfo>
 
     public bool Equals(PlayerInfo other)
     {
-        throw new System.NotImplementedException();
+        return other.clientId == clientId;
     }
 
 

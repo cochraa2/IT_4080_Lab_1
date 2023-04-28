@@ -1,48 +1,50 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using Unity.Netcode;
+using UnityEngine;
 
-public class PowerUpScript : NetworkBehaviour
+public class HaltCarSpawner : NetworkBehaviour
 {
     public bool spawnOnLoad = true;
 
-    public GameObject bonusPrefab;
+    public GameObject haltPrefab;
     private GameObject serverPowerUp = null;
     private Transform spawnPointTransform;
     private GameObject instantiatedPowerUp;
 
-    private float spawnDelay = 5f;
+    private float spawnDelay = 10f;
     private float timeAfterDestroyed = 0f;
 
-    private BonusScript _bonusBoost;
-    
+    private HaltScript _bonusBoost;
+
 
 
     public void SpawnBonus()
     {
         Vector3 spawnPosition = transform.position;
         spawnPosition.y = 4;
-        instantiatedPowerUp = Instantiate(bonusPrefab, spawnPosition, Quaternion.identity);
+        instantiatedPowerUp = Instantiate(haltPrefab, spawnPosition, Quaternion.identity);
         instantiatedPowerUp.GetComponent<NetworkObject>().Spawn();
         serverPowerUp = instantiatedPowerUp;
-        
-    }
 
+    }
     public void Update()
     {
 
-        if(IsServer && serverPowerUp == null)
+        if (IsServer && serverPowerUp == null)
         {
             timeAfterDestroyed += Time.deltaTime;
 
-            if(timeAfterDestroyed >= spawnDelay)
+            if (timeAfterDestroyed >= spawnDelay)
             {
                 SpawnBonus();
                 timeAfterDestroyed = 0f;
             }
         }
     }
+
+
 
     public override void OnNetworkSpawn()
     {
@@ -56,10 +58,9 @@ public class PowerUpScript : NetworkBehaviour
 
     private void HostOnNetworkSpawn()
     {
-        if(bonusPrefab != null && spawnOnLoad)
+        if (haltPrefab != null && spawnOnLoad)
         {
             SpawnBonus();
         }
     }
-
 }

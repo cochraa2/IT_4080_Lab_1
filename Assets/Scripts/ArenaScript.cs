@@ -9,6 +9,9 @@ public class ArenaScript : NetworkBehaviour
 
     private Vector3 minPosition = new Vector3(-27, 5, -102);
     private Vector3 maxPosition = new Vector3(-50, 5, -130);
+    public ulong ownerClientId;
+
+    public NetworkVariable<float> serverTimer = new NetworkVariable<float>(0);
 
     public override void OnNetworkSpawn()
     {
@@ -17,15 +20,36 @@ public class ArenaScript : NetworkBehaviour
         if (IsServer)
         {
             SpawnAllPlayers();
+
         }
 
     }
 
+    private void Update()
+    {
+        if (IsServer)
+        {
+            serverTimer.Value -= Time.deltaTime;
+        }
+    }
     private void SpawnAllPlayers()
     {
         foreach (ulong clientId in NetworkManager.Singleton.ConnectedClientsIds)
         {
             SpawnPlayerForClient(clientId);
+        }
+    }
+
+    private void GameCompleted()
+    {
+        
+        foreach(ulong clientId in NetworkManager.Singleton.ConnectedClientsIds)
+        {
+
+            if(ownerClientId == clientId && carPrefab.Lap.Value >= 4)
+            {
+                Debug.Log($"Client {clientId} has won the game!");
+            }
         }
     }
 
@@ -49,4 +73,6 @@ public class ArenaScript : NetworkBehaviour
         playerSpawn.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId);
         return playerSpawn;
     }
+
+    
 }
