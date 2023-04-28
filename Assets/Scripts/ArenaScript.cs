@@ -25,11 +25,6 @@ public class ArenaScript : NetworkBehaviour
 
     }
 
-    private void Start()
-    {
-      
-    }
-
     private void Update()
     {
         if (IsServer)

@@ -29,8 +29,6 @@ public class PowerUpScript : NetworkBehaviour
         
     }
 
-
-
     public void Update()
     {
 
@@ -45,8 +43,6 @@ public class PowerUpScript : NetworkBehaviour
             }
         }
     }
-
-
 
     public override void OnNetworkSpawn()
     {
