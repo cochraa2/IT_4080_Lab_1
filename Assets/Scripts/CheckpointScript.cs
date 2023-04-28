@@ -5,19 +5,33 @@ using Unity.Netcode;
 
 public class CheckpointScript : MonoBehaviour
 {
-    private ArenaScript trackCheckpoints;
+    private CarScript carHit;
+    Vector3 respawnWorldLoc = new Vector3();
+    Vector3 respawnLocalLoc = new Vector3(0, 0, 0);
 
-        //public int checkpointCount;
-        //private int lapCount = 1;
+    public GameObject spawnSphere;
+    private List<CarScript> standingsList = new List<CarScript>();
 
-
+    float respawnY;
 
     private void OnTriggerEnter(Collider other)
     {
-
+        ulong ownerClientId = other.GetComponent<NetworkObject>().OwnerClientId;
         if (other.gameObject.CompareTag("DaCar"))
         {
-            //trackCheckpoints.PlayerThroughCheckpoint(this, other.gameObject.transform);
+            carHit = NetworkManager.Singleton.ConnectedClients[ownerClientId].PlayerObject.GetComponent<CarScript>();
+            foreach(ulong clientId in NetworkManager.Singleton.ConnectedClientsIds)
+            {
+                if(carHit.Lap.Value >= 1)
+                {
+                    Debug.Log("You Win!");
+                    standingsList.Add(carHit);
+
+                    respawnWorldLoc = spawnSphere.gameObject.transform.position;
+
+                    carHit.transform.Translate(respawnWorldLoc);
+                }
+            }
         }
         
     }
@@ -26,7 +40,4 @@ public class CheckpointScript : MonoBehaviour
     {
         
     }
-
-
-  
 }

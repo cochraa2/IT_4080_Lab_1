@@ -6,12 +6,12 @@ using Unity.Netcode;
 public class ArenaScript : NetworkBehaviour
 {
     public CarScript carPrefab;
-    public NetworkVariable<int> playerCount = new NetworkVariable<int>();
 
     private Vector3 minPosition = new Vector3(-27, 5, -102);
     private Vector3 maxPosition = new Vector3(-50, 5, -130);
+    public ulong ownerClientId;
 
-    private NetworkVariable<float> serverTimer = new NetworkVariable<float>(0);
+    public NetworkVariable<float> serverTimer = new NetworkVariable<float>(0);
 
     public override void OnNetworkSpawn()
     {
@@ -20,9 +20,14 @@ public class ArenaScript : NetworkBehaviour
         if (IsServer)
         {
             SpawnAllPlayers();
-            serverTimer.Value = 125f;
+
         }
 
+    }
+
+    private void Start()
+    {
+      
     }
 
     private void Update()
@@ -37,6 +42,19 @@ public class ArenaScript : NetworkBehaviour
         foreach (ulong clientId in NetworkManager.Singleton.ConnectedClientsIds)
         {
             SpawnPlayerForClient(clientId);
+        }
+    }
+
+    private void GameCompleted()
+    {
+        
+        foreach(ulong clientId in NetworkManager.Singleton.ConnectedClientsIds)
+        {
+
+            if(ownerClientId == clientId && carPrefab.Lap.Value >= 4)
+            {
+                Debug.Log($"Client {clientId} has won the game!");
+            }
         }
     }
 
@@ -61,5 +79,5 @@ public class ArenaScript : NetworkBehaviour
         return playerSpawn;
     }
 
-
+    
 }

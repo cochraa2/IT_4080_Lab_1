@@ -21,29 +21,37 @@ public class CarScript : NetworkBehaviour
     private float serverSpeedDuration = 3f;
 
     private float serverTimeLeftHalt = 3f;
+    private bool isGameDone = false;
 
 
     public TMPro.TMP_Text txtLapDisplay;
     public TMPro.TMP_Text txtSpeedDisplay;
+    public TMPro.TMP_Text txtTimeDisplay;
 
 
     private float horizontalInput;
     private float forwardInput;
+    private NetworkVariable<float> serverTimer = new NetworkVariable<float>();
 
     private Camera _camera;
     private BulletSpawner _bulletSpawner;
     private PowerUpScript _bonusBoost;
     private BonusScript bonusTings;
     private HaltScript haltScript;
+    private ArenaScript arena;
 
 
     public override void OnNetworkSpawn()
     {
+
         base.OnNetworkSpawn();
         _camera = transform.Find("Camera").GetComponent<Camera>();
         _camera.enabled = IsOwner;
         Lap.OnValueChanged += ClientOnLapChange;
         carSpeed.OnValueChanged += ClientOnSpeedChange;
+
+        serverTimer.OnValueChanged += ClientOnTimeChanged;
+        DisplayRaceTime();
 
         _bulletSpawner = transform
             .Find("BarrelTip")
@@ -53,10 +61,13 @@ public class CarScript : NetworkBehaviour
         netPlayerColor.OnValueChanged += OnPlayerColorChanged;
         DisplayLap();
         DisplaySpeed();
-
+        
+        serverTimer.Value = 200f;
         carSpeed.Value = 75f;
         carTurnSpeed.Value = 175f;
     }
+
+    
 
 
     void Update()
@@ -66,23 +77,22 @@ public class CarScript : NetworkBehaviour
             return;   
         }
 
+        if (IsServer)
+        {
+            while(isGameDone == false)
+            {
+                ShowServerTimerServerRpc();
+            }
+            
+        }
+        UpdateTimerClientRpc(serverTimer.Value);
+
         ClickToChangeColor();
         ShootBullets();  
 
         UseBoost();
-        //StartHaltTimerServerRpc();
 
-        if (hasHaltBonus.Value)
-        {
-            Debug.Log("Halt bonus is true!");
-        }
-
-        if(serverTimeLeftHalt < 3)
-        {
-            Debug.Log(serverTimeLeftHalt);
-        }
-
-        if (carSpeed.Value <= 0 || hasHaltBonus.Value)
+        if (carSpeed.Value <= 0  || hasHaltBonus.Value)
         {
             StartHaltTimerServerRpc();
         }
@@ -140,7 +150,7 @@ public class CarScript : NetworkBehaviour
     {
         if (IsOwner)
         {
-            if (Input.GetKeyDown(KeyCode.B))
+            if (Input.GetKeyDown(KeyCode.F))
             {
                 if (hasSpeedBoost.Value)
                 {
@@ -210,6 +220,11 @@ public class CarScript : NetworkBehaviour
             if (other.gameObject.CompareTag("Checkpoint"))
             {
                 HandleCheckpoints(other.gameObject.GetComponent<CheckpointScript>());
+                if (Lap.Value >= 1)
+                {
+                    txtLapDisplay.text = "Game Over!";
+                    txtSpeedDisplay.text = "Welcome to Winners Island!";
+                }
             }
 
             if (other.gameObject.CompareTag("HaltBonus"))
@@ -249,6 +264,8 @@ public class CarScript : NetworkBehaviour
     {
         DisplaySpeed();
     }
+
+    
 
     //---------------------
     // HALT BONUS
@@ -326,6 +343,33 @@ public class CarScript : NetworkBehaviour
         Debug.Log(respawnLocalLoc);
     }
 
+    // Game Time ---------------
+
+    public void DisplayRaceTime()
+    {
+        if(IsOwner)
+        {
+            txtTimeDisplay.text = serverTimer.Value.ToString("F2");
+            if (serverTimer.Value <= 0)
+            {
+                serverTimer.Value = 0f;
+            }
+        }
+        
+    }
+
+    private void ClientOnTimeChanged(float previous, float current)
+    {
+        DisplayRaceTime();
+    }
+
+    //------------------
+    // Finish
+
+    private void EndGame()
+    {
+        
+    }
 
     //------------------
     // Color Things
@@ -464,6 +508,19 @@ public class CarScript : NetworkBehaviour
             serverTimeLeftHalt = 3f;
         }
         
+    }
+
+    [ServerRpc]
+    void ShowServerTimerServerRpc()
+    {
+        serverTimer.Value -= Time.deltaTime;
+        //txtTimeDisplay.text = serverTimer.Value.ToString("F2");
+    }
+
+    [ClientRpc]
+    void UpdateTimerClientRpc(float value)
+    {
+//        serverTimer.Value = value;
     }
 
 }

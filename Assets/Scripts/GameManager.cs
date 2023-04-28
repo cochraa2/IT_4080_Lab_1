@@ -5,15 +5,40 @@ using Unity.Netcode;
 
 public class GameManager : NetworkBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    private ulong clientId;
+    public NetworkList<PlayerInfo> allPlayers = new NetworkList<PlayerInfo>();
+    public NetworkVariable<int> gameLaps = new NetworkVariable<int>();
+
+    public override void OnNetworkSpawn()
     {
-        
+        base.OnNetworkSpawn();
+        gameLaps.Value = 1;
     }
 
-    // Update is called once per frame
-    void Update()
+    public void GameOver()
     {
-        
+        if (IsServer)
+        {
+            foreach (PlayerInfo player in allPlayers)
+            {
+                var client = NetworkManager.Singleton.ConnectedClients[player.clientId].PlayerObject.GetComponent<CarScript>();
+
+                clientId = player.clientId;
+                if (client.Lap.Value >= gameLaps.Value)
+                {
+
+                    Debug.Log("Hooray! Game Completed!");
+
+                }
+                else
+                {
+                    //otherCars = NetworkManager.Singleton.ConnectedClients[clientId].PlayerObject.GetComponent<CarScript>();
+                    //otherCars.carSpeed.Value = 0f;
+                }
+
+            }
+        }
+
     }
 }
+
